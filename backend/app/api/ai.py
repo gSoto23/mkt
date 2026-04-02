@@ -156,9 +156,9 @@ def update_post(post_id: int, request: PostUpdateRequest, db: Session = Depends(
     post.status = request.status
     if request.scheduled_for:
         try:
-            import pytz
+            from datetime import timezone
             d_tz = datetime.fromisoformat(request.scheduled_for.replace('Z', '+00:00'))
-            post.scheduled_for = d_tz.astimezone(pytz.utc).replace(tzinfo=None)
+            post.scheduled_for = d_tz.astimezone(timezone.utc).replace(tzinfo=None)
         except ValueError:
             pass # fallback to original
 
