@@ -39,7 +39,8 @@ def meta_login(brand_id: int):
         "redirect_uri": f"{settings.BACKEND_URL}/api/social/meta_callback",
         "state": str(brand_id),
         "scope": ",".join(scopes),
-        "response_type": "code"
+        "response_type": "code",
+        "auth_type": "rerequest"
     }
     
     auth_url = f"https://www.facebook.com/v19.0/dialog/oauth?{urlencode(params)}"
