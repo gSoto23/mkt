@@ -24,7 +24,7 @@ export default function Home() {
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:8000/api/brands/')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`)
       .then(res => res.json())
       .then(data => setBrands(data))
       .catch(console.error);
@@ -62,7 +62,7 @@ export default function Home() {
       };
 
       try {
-          const res = await fetch('http://localhost:8000/api/brands/', {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)

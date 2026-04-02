@@ -29,7 +29,7 @@ export default function BrandSettings() {
     useEffect(() => {
         const loadBrand = async () => {
             try {
-                const res = await fetch(`http://localhost:8000/api/brands/${brandId}`);
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
                 if (!res.ok) throw new Error('Marca no encontrada');
                 const data = await res.json();
                 
@@ -96,7 +96,7 @@ export default function BrandSettings() {
         };
 
         try {
-            await fetch(`http://localhost:8000/api/brands/${brandId}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

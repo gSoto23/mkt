@@ -33,17 +33,17 @@ export default function StudioBoard() {
         setLoading(true);
         try {
             // Cargar Info de Marca
-            const brandRes = await fetch(`http://localhost:8000/api/brands/${brandId}`);
+            const brandRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
             const brandData = await brandRes.json();
             setBrandInfo(brandData);
 
             // Cargar Posts
-            const res = await fetch(`http://localhost:8000/api/ai/posts/${brandId}`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${brandId}`);
             const data = await res.json();
             setPosts(data);
 
             // Cargar estado de redes
-            const socialRes = await fetch(`http://localhost:8000/api/social/status/${brandId}`);
+            const socialRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/status/${brandId}`);
             if(socialRes.ok){
                 const sData = await socialRes.json();
                 setSocialStatus(sData);
@@ -75,7 +75,7 @@ export default function StudioBoard() {
         setShowGenerateSetup(false);
         setGenerating(true);
         try {
-            await fetch('http://localhost:8000/api/ai/generate-batch', {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/generate-batch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ brand_id: brandId, post_counts: postCounts })
@@ -91,7 +91,7 @@ export default function StudioBoard() {
     const handleApprove = async () => {
         if (!editingPost) return;
         try {
-            await fetch(`http://localhost:8000/api/ai/posts/${editingPost.id}`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -111,7 +111,7 @@ export default function StudioBoard() {
     const handleDelete = async (id: number) => {
         if (!confirm('¿Eliminar esta publicación? No podrás recuperarla.')) return;
         try {
-            await fetch(`http://localhost:8000/api/ai/posts/${id}`, { method: 'DELETE' });
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${id}`, { method: 'DELETE' });
             if (editingPost && editingPost.id === id) setEditingPost(null);
             loadData();
         } catch (e) {
@@ -133,7 +133,7 @@ export default function StudioBoard() {
         if (!editingPost) return;
         setGeneratingImage(true);
         try {
-            const res = await fetch(`http://localhost:8000/api/ai/posts/${editingPost.id}/generate-image`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })
@@ -156,7 +156,7 @@ export default function StudioBoard() {
         if (!editingPost) return;
         setGeneratingProImage(true);
         try {
-            const res = await fetch(`http://localhost:8000/api/ai/posts/${editingPost.id}/generate-image-pro`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image-pro`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })
@@ -179,7 +179,7 @@ export default function StudioBoard() {
         if (!editingPost) return;
         setGeneratingVideo(true);
         try {
-            const res = await fetch(`http://localhost:8000/api/ai/posts/${editingPost.id}/generate-video`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-video`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })
@@ -226,8 +226,13 @@ export default function StudioBoard() {
                            <Link href={`/studio/settings?brandId=${brandId}`} style={{ marginLeft: '1rem', background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
                                ⚙️ Ajustar ADN de Marca
                            </Link>
-                           <a href={`http://localhost:8000/api/social/meta_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: socialStatus?.connected ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: socialStatus?.connected ? '#2ecc71' : '#38bdf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${socialStatus?.connected ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
-                               {socialStatus?.connected ? `✅ Meta Conectado (${socialStatus.total_accounts} accs)` : '🔗 Conectar con Meta / IG'}
+                           {/* Botón de Meta */}
+                           <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/meta_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? '#2ecc71' : '#38bdf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
+                               {(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? `✅ Meta Conectado` : '🔗 Meta / IG'}
+                           </a>
+                           {/* Botón de TikTok */}
+                           <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/tiktok_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.1)' : 'rgba(236, 72, 153, 0.1)', color: socialStatus?.platforms?.includes('tiktok') ? '#2ecc71' : '#ec4899', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.3)' : 'rgba(236, 72, 153, 0.3)'}` }}>
+                               {socialStatus?.platforms?.includes('tiktok') ? `✅ TikTok Conectado` : '🎵 Conectar TikTok'}
                            </a>
                         </div>
                     </div>

@@ -1,6 +1,6 @@
 # Guía de Despliegue en AWS Lightsail (Modo "A Prueba de Balas")
 
-Bienvenido al mundo de los servidores vivos. AWS Lightsail es el equivalente a alquilar una computadora en la nube que nunca se apaga. Esta guía está diseñada sin jerga técnica para que puedas subir tu portal hoy mismo.
+Bienvenido al mundo de los servidores vivos. AWS Lightsail es el equivalente a alquilar una computadora en la nube que nunca se apaga. Esta guía está diseñada sin jerga técnica para que puedas lanzar al público la plataforma utilizando el dominio maestro **juguetessinazucar.com**.
 
 ---
 
@@ -10,44 +10,49 @@ Bienvenido al mundo de los servidores vivos. AWS Lightsail es el equivalente a a
    - Inicia sesión en [AWS Lightsail](https://lightsail.aws.amazon.com/).
    - Haz clic en el botón naranja **Create instance** (Crear instancia).
    - **Localización**: Elige `US East (N. Virginia)` o la que esté más cerca de tu país.
-   - **Imagen (OS Only)**: Selecciona **Ubuntu 22.04 LTS** (o 24.04). No uses las Apps (ni Node, ni WordPress, solo el OS pelado).
-   - **Plan**: Te sugiero el plan de **$10 USD / mes** (2 GB RAM, 2 vCPUs) como mínimo absoluto. Nuestro motor de IA y bases de datos necesitan memoria RAM para no congelarse.
+   - **Imagen (OS Only)**: Selecciona **Ubuntu 22.04 LTS** (o 24.04). No uses las Apps.
+   - **Plan**: Es súper recomendado elegir el plan de **$12 USD / mes** (2 GB de memoria RAM, 2 vCPUs). Éste asegura que todo el motor (Next.js, FastAPI, bases de datos y Celery) pueda compilar velozmente "a la segura" sin atascamientos.
    - **Nombre de Instancia**: Escribe `gmkt-production` y dale a **Create instance**.
 
 2. **Abrir los Puertos de Red (Firewall)**
    - Una vez la instancia diga "Running" (Corriendo), haz clic en su nombre.
    - Ve a la pestaña **Networking** (Redes).
-   - En la sección IPv4 Firewall, haz clic en **+ Add rule**.
-   - Añade los puertos:
+   - En la sección IPv4 Firewall, añade los siguientes Custom Ports (Haciendo click en `+ Add rule`):
      - `HTTP` (TCP) en el puerto **80**
      - `HTTPS` (TCP) en el puerto **443**
-     - `Custom` (TCP) en el puerto **8000** (Opcional, para testing directo del Backend).
-     - `Custom` (TCP) en el puerto **3000** (Opcional, para testing directo del Frontend).
 
 3. **Conectarse al Servidor**
-   - Arriba a la derecha verás un botón naranja que dice **Connect using SSH** (o un ícono pequeño de terminal negro). Haz clic ahí. Se te abrirá una terminal negra en tu navegador. ¡Felicidades, estás dentro del cerebro de tu servidor!
+   - Arriba a la derecha verás un botón naranja que dice **Connect using SSH** (o un ícono pequeño de terminal). Al darle clic se desplegará una terminal. Serás "root" del sistema operativo.
 
 ---
 
-## 🛠️ FASE 2: Instalar el Ecosistema
+## 🧠 FASE 2: Configurar Memoria Swap (El Secreto de la Instancia Pequeña)
 
-En la terminal negra que abriste, copia y pega estos comandos uno por uno (presiona Enter al final de cada uno):
+Dado que usarás la instancia más pequeña y económica (con 512MB o 1GB de RAM), correr todos estos motores a la vez (Base de Datos, IA, Web, Workers Celery) haría que el servidor colapsara si no hacemos este truco. Configuraremos un disco SWAP de 4GB que funcionará como memoria RAM de emergencia vital, usando tu disco SSD. Esto hace que todo sea ultra estable aunque sea barato:
 
-**1. Actualizar la computadora:**
+Escribe esto uno por uno en la consola de Lightsail:
 ```bash
-sudo apt update && sudo apt upgrade -y
+sudo fallocate -l 4G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 ```
 
-**2. Instalar Node.js, Python, y PM2 (El administrador que mantiene las apps vivas 24/7):**
+---
+
+## 🛠️ FASE 3: Instalar el Ecosistema y Dependencias
+
+**1. Actualizar e instalar software fundacional de la Nube:**
 ```bash
-sudo apt install -y python3-pip python3-venv git curl postgresql postgresql-contrib nginx redis-server
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3-pip python3-venv git curl postgresql postgresql-contrib nginx redis-server apt-transport-https ca-certificates software-properties-common docker-compose python3-certbot-nginx
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g pm2
 ```
 
-**3. Clonar y traer tu código al Servidor:**
-*(Nota: Pega la URL de tu github, si es privado, github te pedirá tu usuario y un Personal Access Token).*
+**2. Traer el Código desde tu GitHub:**
 ```bash
 git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git mkt
 cd mkt
@@ -55,88 +60,139 @@ cd mkt
 
 ---
 
-## 📦 FASE 3: Prender Motores (Despliegue Inicial)
+## 📦 FASE 4: Prender Motores en modo Producción
 
-Siempre dentro de la terminal negra (estando dentro de la carpeta `mkt`):
-
-### A. Prender Base de Datos y Redis (Usando tu Docker)
+**A. Levantar la Base de Datos Inquebrantable:**
 ```bash
-sudo apt install docker-compose -y
 sudo docker-compose up -d
 ```
 
-### B. Levantar el Backend (FastAPI / Inteligencia Artificial)
+**B. Ajustar Backend e Inteligencia de Criptografía (OAuth Meta/TikTok):**
 ```bash
 cd backend
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
-👉 *Punto Crítico:* Tienes que clonar tus variables de entorno. Crea tu archivo de claves oculto y pega tu `GEMINI_API_KEY`:
+👉 *Punto Crítico:* Crea el `.env` del backend para blindar los secrets:
 ```bash
 nano .env
-# Pega adentro tus claves y guarda apretando: CTRL+X, luego Y, luego Enter
 ```
+Copia y pega EXACTAMENTE esto, cambiando las APIs reales. Es MUY crítico que las URLs contengan tu nuevo dominio final.
+```env
+GEMINI_API_KEY="..."
+META_CLIENT_ID="..."
+META_CLIENT_SECRET="..."
+TIKTOK_CLIENT_KEY="..."
+TIKTOK_CLIENT_SECRET="..."
+BACKEND_URL="https://juguetessinazucar.com"
+FRONTEND_URL="https://juguetessinazucar.com"
+```
+*(Guarda con `CTRL+X`, `Y`, `Enter`)*
 
-Iniciemos el Backend en modo "Infinito" usando PM2:
+Encendamos el API y el Robot Celery Beat de Autopublicación en el fondo mediante PM2:
 ```bash
-pm2 start "venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000" --name "gmkt-backend"
+pm2 start "venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000" --name "gmkt-backend"
+pm2 start "venv/bin/celery -A app.core.celery_app worker -l info -B" --name "gmkt-celery"
 ```
 
-### C. Levantar el Frontend (El Portal Gráfico)
+**C. Compilar el Next.js (Visión de Panel UI):**
 ```bash
 cd ../frontend
 npm install
 npm run build
 ```
-👉 *Punto Crítico:* Configura las contraseñas para asegurar el Frontend creando el archivo maestro de variables:
+👉 *Punto Crítico:* Seguridad de panel frontal:
 ```bash
 nano .env
 ```
-*(Se abrirá el editor en consola. Pega exactamente esto adentro):*
 ```env
 PORTAL_USER=gerardo
 PORTAL_PASS=231287
+NEXT_PUBLIC_API_URL="https://juguetessinazucar.com"
 ```
-*(Guarda los cambios usando tu teclado: Presiona `CTRL+X`, luego la letra `Y`, y finalmente `Enter`).*
-
-Iniciemos el Frontend en modo "Infinito":
+Y arranca el Front:
 ```bash
 pm2 start npm --name "gmkt-frontend" -- start
 ```
 
-### D. Auto-arranque si falla Lightsail
-Si Amazon reinicia tu servidor por razones técnicas, quieres que tus apps revivan solas:
+**D. Inmortalidad (Que todo inicie si Amazon apaga la instancia):**
 ```bash
 pm2 save
 pm2 startup
-# (La consola te escupirá un comando aquí, CÓPIALO y PÉGALO para terminar).
+# La consola te dará un link que empieza con `sudo ...`, CÓPIALO y PÉGALO.
 ```
-
-¡Ya está! Si vas a la IP de tu servidor Lightsail tipo `http://111.222.333.444:3000`, verás tu portal vivo en internet para todo el mundo.
 
 ---
 
-## 🚀 FASE 4: Re-Deploy del Futuro (Cuando Actualices Cosas)
+## 🔒 FASE 5: Conectar el Dominio Maestro y Encriptación (HTTPS)
 
-Cuando modifiques tu código localmente, la rutina para que el servidor lo descargue y se actualice es extremadamente sencilla.
-En tu terminal de Lightsail corres:
+⚠️ **ALTO:** Antes de este paso, ve al Administrador de Dominio donde compraste **juguetessinazucar.com** y configura los *Registros A* apuntando a la Dirección IP estática pública de tu instancia de Lightsail (ideal apuntar tanto la base `juguetessinazucar.com` como el sub `www`).
+
+**1. Interceptar el Tráfico con Nginx Proxy:**
+Vamos a instruir al cerebro general a dividir el tráfico entre API Port 8000 y Front Port 3000.
+```bash
+sudo rm /etc/nginx/sites-enabled/default
+sudo nano /etc/nginx/sites-available/mkt
+```
+Pega exactamente esto:
+```nginx
+server {
+    listen 80;
+    server_name juguetessinazucar.com www.juguetessinazucar.com;
+
+    # Backend / Enrutado Graph Meta
+    location /api/ {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_addrs;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Frontend Principal
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_addrs;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+Actívalo y enciende a Nginx:
+```bash
+sudo ln -s /etc/nginx/sites-available/mkt /etc/nginx/sites-enabled/
+sudo systemctl reload nginx
+```
+
+**2. Obtener el Candado HTTPS con Let's Encrypt (Certbot):**
+Gracias al certificado HTTPS gratuito, Graph API de Facebook y TikTok podrán descargar y enviar webhooks protegidos:
+```bash
+sudo certbot --nginx -d juguetessinazucar.com -d www.juguetessinazucar.com
+```
+*Sigue las instrucciones en consola; provee tu email, y escoge `Y` a redirigir HTTP a HTTPS (Para que nadie pueda usar el portal inseguro).*
+
+---
+
+## 🚀 FASE 6: Re-Deploy del Olympo (Mantenimiento de Software)
+
+Cuando agreguemos lógicas nuevas de Redes a tu compu y necesites actualizar Lightsail:
 
 ```bash
 cd mkt
 git pull origin main
 ```
 
-**Si cambiaste algo en Python (Backend):**
+**Si fue código de Python (Reglas de Automotización o API):**
 ```bash
 pm2 restart gmkt-backend
+pm2 restart gmkt-celery
 ```
 
-**Si cambiaste algo Visual (Frontend Next.js):**
+**Si fue algo visual o de experiencia UI (Next.js):**
 ```bash
 cd frontend
 npm run build
 pm2 restart gmkt-frontend
 ```
-
-> **Dominio Nativo Requerido (El paso final opcional):** Para que las personas entren con `www.tumarketing.com` en vez de una IP desnuda con `:3000`, necesitaríamos enlazar el Nginx Proxy. Eso lo podemos hacer en un par de minutos el día que compres o elijas el dominio oficial de lanzamiento.

@@ -161,3 +161,69 @@ def serve_media(post_id: int, db: Session = Depends(get_db)):
         return Response(content=binary_data, media_type=mime_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail="Invalid media format in DB")
+
+@router.get("/tiktok_login")
+def tiktok_login(brand_id: int):
+    if not settings.TIKTOK_CLIENT_KEY:
+        raise HTTPException(status_code=500, detail="Falta configurar TIKTOK_CLIENT_KEY en el backend")
+        
+    scopes = ["user.info.basic", "video.publish"]
+    redirect_uri = f"{settings.BACKEND_URL}/api/social/tiktok_callback"
+    
+    params = {
+        "client_key": settings.TIKTOK_CLIENT_KEY,
+        "response_type": "code",
+        "scope": ",".join(scopes),
+        "redirect_uri": redirect_uri,
+        "state": str(brand_id)
+    }
+    
+    auth_url = f"https://www.tiktok.com/v2/auth/authorize/?{urlencode(params)}"
+    return RedirectResponse(url=auth_url)
+
+@router.get("/tiktok_callback")
+async def tiktok_callback(code: str, state: str, db: Session = Depends(get_db)):
+    if not code:
+        raise HTTPException(status_code=400, detail="Code de TikTok no provisto")
+        
+    brand_id = int(state) if state.isdigit() else None
+    if not brand_id:
+        raise HTTPException(status_code=400, detail="Invalid brand_id en state")
+        
+    if not settings.TIKTOK_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="TIKTOK_CLIENT_SECRET faltante")
+
+    redirect_uri = f"{settings.BACKEND_URL}/api/social/tiktok_callback"
+
+    async with httpx.AsyncClient() as client:
+        # Petición 1: Canjeamos el code por Access Token
+        token_url = "https://open.tiktokapis.com/v2/oauth/token/"
+        data = {
+            "client_key": settings.TIKTOK_CLIENT_KEY,
+            "client_secret": settings.TIKTOK_CLIENT_SECRET,
+            "code": code,
+            "grant_type": "authorization_code",
+            "redirect_uri": redirect_uri
+        }
+        token_res = await client.post(token_url, data=data, headers={"Content-Type": "application/x-www-form-urlencoded"})
+        token_data = token_res.json()
+        
+        if "access_token" not in token_data:
+            raise HTTPException(status_code=400, detail=f"Fallo trayendo token de TikTok: {token_data}")
+            
+        access_token = token_data["access_token"]
+        open_id = token_data.get("open_id")
+        refresh_token = token_data.get("refresh_token")
+        
+        # Guardamos/Actualizamos la cuenta de TikTok
+        db_tt = db.query(SocialAccount).filter(SocialAccount.provider_account_id == open_id).first()
+        if not db_tt:
+            db_tt = SocialAccount(brand_id=brand_id, platform="tiktok", provider_account_id=open_id)
+            db.add(db_tt)
+        db_tt.access_token = access_token
+        db_tt.refresh_token = refresh_token
+        db_tt.brand_id = brand_id
+        
+        db.commit()
+    
+    return RedirectResponse(url=f"{settings.FRONTEND_URL}/?oauth=success&accounts=1")
