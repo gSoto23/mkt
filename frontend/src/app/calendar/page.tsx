@@ -63,6 +63,17 @@ export default function GlobalCalendar() {
         return '📰';
     };
 
+    const getStatusInfo = (status: string) => {
+        switch(status) {
+            case 'PUBLISHED': return { bg: 'rgba(46, 204, 113, 0.2)', text: '#2ecc71', label: '🚀 PUBLICADO', border: 'rgba(46, 204, 113, 0.3)', dot: '#2ecc71' };
+            case 'APPROVED': return { bg: 'rgba(46, 204, 113, 0.2)', text: '#2ecc71', label: '✓ APROBADO', border: 'rgba(46, 204, 113, 0.3)', dot: '#2ecc71' };
+            case 'FAILED': return { bg: 'rgba(239, 68, 68, 0.2)', text: '#ef4444', label: '❌ ERROR', border: 'rgba(239, 68, 68, 0.3)', dot: '#ef4444' };
+            case 'PENDING_APPROVAL':
+            default:
+                 return { bg: 'rgba(245, 158, 11, 0.2)', text: '#f59e0b', label: 'PENDIENTE', border: 'rgba(245, 158, 11, 0.3)', dot: '#f59e0b' };
+        }
+    };
+
     return (
         <main style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto', fontFamily: 'var(--font-inter)' }}>
             {/* Header Global */}
@@ -164,7 +175,7 @@ export default function GlobalCalendar() {
                                                                     <span style={{fontSize: '0.8rem'}}>{getPlatformIcon(p.platform)}</span>
                                                                     <span style={{fontSize:'0.7rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80px'}}>{p.brand_name}</span>
                                                                 </div>
-                                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'APPROVED' ? '#2ecc71' : '#f59e0b', boxShadow: p.status === 'APPROVED' ? '0 0 5px #2ecc71' : 'none' }}></div>
+                                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: getStatusInfo(p.status).dot, boxShadow: p.status === 'APPROVED' || p.status === 'PUBLISHED' ? `0 0 5px ${getStatusInfo(p.status).dot}` : 'none' }}></div>
                                                             </div>
                                                             <span style={{fontSize: '0.7rem', color: '#94a3b8'}}>
                                                                 {new Intl.DateTimeFormat('es-CR', { timeZone: 'America/Costa_Rica', hour: '2-digit', minute: '2-digit' }).format(new Date(p.scheduled_for))}
@@ -192,8 +203,8 @@ export default function GlobalCalendar() {
                                   <h3 style={{margin: 0, fontSize: '1.4rem', color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '8px'}}>
                                       {getPlatformIcon(selectedPost.platform)} {selectedPost.brand_name}
                                   </h3>
-                                  <span style={{background: selectedPost.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(245, 158, 11, 0.2)', color: selectedPost.status === 'APPROVED' ? '#2ecc71' : '#f59e0b', padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: `1px solid ${selectedPost.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`}}>
-                                      {selectedPost.status === 'APPROVED' ? '✓ APROBADO' : 'PENDIENTE'}
+                                  <span style={{background: getStatusInfo(selectedPost.status).bg, color: getStatusInfo(selectedPost.status).text, padding: '4px 10px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, border: `1px solid ${getStatusInfo(selectedPost.status).border}`}}>
+                                      {getStatusInfo(selectedPost.status).label}
                                   </span>
                               </div>
                               <div style={{display: 'flex', gap: '15px', color: '#94a3b8', fontSize: '0.85rem'}}>
