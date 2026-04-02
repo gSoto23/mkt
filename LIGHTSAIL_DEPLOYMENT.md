@@ -54,7 +54,7 @@ sudo npm install -g pm2
 
 **2. Traer el Código desde tu GitHub:**
 ```bash
-git clone https://github.com/TU_USUARIO/TU_REPOSITORIO.git mkt
+git clone https://github.com/gSoto23/mkt.git mkt
 cd mkt
 ```
 
