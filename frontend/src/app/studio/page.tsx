@@ -4,7 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
-export default function StudioBoard() {
+import { Suspense } from 'react';
+
+function StudioBoardContent() {
     const searchParams = useSearchParams();
     const brandIdStr = searchParams.get('brandId') || '1';
     const brandId = parseInt(brandIdStr, 10);
@@ -559,4 +561,12 @@ export default function StudioBoard() {
             `}</style>
         </main>
     )
+}
+
+export default function StudioBoard() {
+    return (
+        <Suspense fallback={<div style={{padding: '5rem', textAlign: 'center', color: '#fff'}}>Cargando Estudio de IA...</div>}>
+            <StudioBoardContent />
+        </Suspense>
+    );
 }

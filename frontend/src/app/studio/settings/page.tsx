@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function BrandSettings() {
+function SettingsPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const brandIdStr = searchParams.get('brandId') || '1';
@@ -217,6 +217,15 @@ export default function BrandSettings() {
         </main>
     )
 }
+
+export default function BrandSettings() {
+    return (
+        <Suspense fallback={<div style={{padding: '5rem', textAlign: 'center', color: '#fff'}}>Cargando Configuraciones...</div>}>
+            <SettingsPageContent />
+        </Suspense>
+    );
+}
+
 
 const labelStyle = { display: 'block', marginBottom: '0.5rem', color: '#e4e4e7', fontSize: '0.9rem', fontWeight: 600 };
 const inputStyle = { width: '100%', boxSizing: 'border-box' as any, padding: '14px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(0,0,0,0.3)', color: 'white', fontFamily: 'inherit', fontSize: '0.95rem' };

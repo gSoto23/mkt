@@ -46,7 +46,7 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 **1. Actualizar e instalar software fundacional de la Nube:**
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y python3-pip python3-venv git curl postgresql postgresql-contrib nginx redis-server apt-transport-https ca-certificates software-properties-common docker-compose python3-certbot-nginx
+sudo apt install -y python3-pip python3-venv git curl nginx apt-transport-https ca-certificates software-properties-common docker-compose python3-certbot-nginx
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 sudo npm install -g pm2
@@ -146,7 +146,7 @@ server {
         proxy_pass http://127.0.0.1:8000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_addrs;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
@@ -155,7 +155,7 @@ server {
         proxy_pass http://127.0.0.1:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_addrs;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
