@@ -1,15 +1,27 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine, SessionLocal
-from app.models.base import Brand
+from app.db.database import Base, engine, SessionLocal
+from app.models.base import Brand, User
 from app.api import auth, ai, brands, social
 from app.core.config import settings
+from app.core.security import get_password_hash, get_current_user
+from fastapi import Depends
 
 # Initialize DB tables
 Base.metadata.create_all(bind=engine)
 
 def seed_db():
     db = SessionLocal()
+    
+    # Crear Usuario Maestro
+    admin_user = db.query(User).filter(User.email == "eddyngerardo@gmail.com").first()
+    if not admin_user:
+        hashed = get_password_hash("231287")
+        admin_user = User(email="eddyngerardo@gmail.com", hashed_password=hashed)
+        db.add(admin_user)
+        db.commit()
+    
     if not db.query(Brand).first():
         b1 = Brand(
             name="darboles", 
@@ -18,7 +30,8 @@ def seed_db():
             products_promotions="Venta de árboles frutales, pinos de interior, herramientas sustentables y kits de jardinería.",
             visual_identity={"colors": ["#2ecc71", "#27ae60", "#ecf0f1", "#ad974f"]},
             active_platforms=["Facebook", "Instagram"],
-            master_prompt="Genera contenido valioso que invite a plantar y reconectar con la naturaleza desde casa."
+            master_prompt="Genera contenido valioso que invite a plantar y reconectar con la naturaleza desde casa.",
+            owner_id=admin_user.id
         )
         db.add(b1)
         db.commit()
@@ -42,9 +55,9 @@ app.add_middleware(
 )
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
-app.include_router(brands.router, prefix="/api/brands", tags=["brands"])
-app.include_router(social.router, prefix="/api/social", tags=["social"])
+app.include_router(ai.router, prefix="/api/ai", tags=["ai"], dependencies=[Depends(get_current_user)])
+app.include_router(brands.router, prefix="/api/brands", tags=["brands"], dependencies=[Depends(get_current_user)])
+app.include_router(social.router, prefix="/api/social", tags=["social"], dependencies=[Depends(get_current_user)])
 
 @app.get("/")
 def read_root():

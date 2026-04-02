@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api';
 
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
@@ -29,7 +30,7 @@ function SettingsPageContent() {
     useEffect(() => {
         const loadBrand = async () => {
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
+                const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
                 if (!res.ok) throw new Error('Marca no encontrada');
                 const data = await res.json();
                 
@@ -96,7 +97,7 @@ function SettingsPageContent() {
         };
 
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`, {
+            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -19,10 +20,10 @@ export default function GlobalCalendar() {
     const loadData = async () => {
         setLoading(true);
         try {
-            const resBrands = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`);
+            const resBrands = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`);
             setBrands(await resBrands.json());
             
-            const resPosts = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts_global`);
+            const resPosts = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts_global`);
             setPosts(await resPosts.json());
         } catch (e) {
             console.error(e);

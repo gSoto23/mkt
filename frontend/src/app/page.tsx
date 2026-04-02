@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -24,7 +25,7 @@ export default function Home() {
   const [referenceImages, setReferenceImages] = useState<string[]>([]);
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`)
+    apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`)
       .then(res => res.json())
       .then(data => setBrands(data))
       .catch(console.error);
@@ -48,7 +49,7 @@ export default function Home() {
       if (!window.confirm("🔴 ALERTA: ¿Estás seguro de eliminar esta Marca? Esto destruirá TODOS sus posts de IA, historiales y conexiones sociales (Meta/TikTok) para siempre.")) return;
       
       try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${id}`, { method: 'DELETE' });
+          const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${id}`, { method: 'DELETE' });
           if(res.ok) {
               setBrands(prev => prev.filter((b: any) => b.id !== id));
           } else {
@@ -79,7 +80,7 @@ export default function Home() {
       };
 
       try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`, {
+          const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(payload)

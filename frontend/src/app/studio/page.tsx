@@ -1,4 +1,5 @@
 'use client';
+import { apiFetch } from '@/lib/api';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -35,17 +36,17 @@ function StudioBoardContent() {
         setLoading(true);
         try {
             // Cargar Info de Marca
-            const brandRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
+            const brandRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${brandId}`);
             const brandData = await brandRes.json();
             setBrandInfo(brandData);
 
             // Cargar Posts
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${brandId}`);
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${brandId}`);
             const data = await res.json();
             setPosts(data);
 
             // Cargar estado de redes
-            const socialRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/status/${brandId}`);
+            const socialRes = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/status/${brandId}`);
             if(socialRes.ok){
                 const sData = await socialRes.json();
                 setSocialStatus(sData);
@@ -77,7 +78,7 @@ function StudioBoardContent() {
         setShowGenerateSetup(false);
         setGenerating(true);
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/generate-batch`, {
+            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/generate-batch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ brand_id: brandId, post_counts: postCounts })
@@ -93,7 +94,7 @@ function StudioBoardContent() {
     const handleApprove = async () => {
         if (!editingPost) return;
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}`, {
+            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -113,7 +114,7 @@ function StudioBoardContent() {
     const handleDelete = async (id: number) => {
         if (!confirm('¿Eliminar esta publicación? No podrás recuperarla.')) return;
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${id}`, { method: 'DELETE' });
+            await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${id}`, { method: 'DELETE' });
             if (editingPost && editingPost.id === id) setEditingPost(null);
             loadData();
         } catch (e) {
@@ -135,7 +136,7 @@ function StudioBoardContent() {
         if (!editingPost) return;
         setGeneratingImage(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image`, {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })
@@ -158,7 +159,7 @@ function StudioBoardContent() {
         if (!editingPost) return;
         setGeneratingProImage(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image-pro`, {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image-pro`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })
@@ -181,7 +182,7 @@ function StudioBoardContent() {
         if (!editingPost) return;
         setGeneratingVideo(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-video`, {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-video`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ media_prompt: editPrompt })

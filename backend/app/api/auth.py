@@ -2,11 +2,30 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import RedirectResponse
 import httpx
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session
+from fastapi.security import OAuth2PasswordRequestForm
 from app.core.config import settings
+from app.core.security import verify_password, create_access_token, get_current_user
 from app.db.database import get_db
-from app.models.base import SocialAccount
+from app.models.base import SocialAccount, User
 
 router = APIRouter()
+
+router = APIRouter()
+
+# --- AUTENTICACIÓN PROPIA (JWT) ---
+@router.post("/login")
+def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form_data.username).first()
+    if not user or not verify_password(form_data.password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Credenciales incorrectas")
+    
+    access_token = create_access_token(data={"sub": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@router.get("/me")
+def read_users_me(current_user: User = Depends(get_current_user)):
+    return {"email": current_user.email, "id": current_user.id}
 
 # --- META (Facebook/Instagram) ---
 @router.get("/meta/login")

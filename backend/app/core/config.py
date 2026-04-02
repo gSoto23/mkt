@@ -5,6 +5,11 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:3000"
     BACKEND_URL: str = "http://localhost:8000"
     
+    # Seguridad y JWT
+    SECRET_KEY: str = "super_secreto_hardcodeado_temporal_MKT_AI_8321032"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440 # 24 horas
+
     # DB
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "mkt_user"
