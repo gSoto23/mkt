@@ -145,8 +145,8 @@ def publish_to_instagram(post: Post, account: SocialAccount):
         
         # Test Backdoor: Validar bloqueo de dominio vs bloqueo de imagen
         if "[TEST]" in caption:
-            logger.info("[META API] MODO TEST: Usando URL de Wikimedia segura para saltar nuestra BD")
-            media_url = "https://upload.wikimedia.org/wikipedia/commons/a/a3/June_odd-eyed-cat.jpg"
+            logger.info("[META API] MODO TEST: Usando URL de Unsplash segura para saltar nuestra BD")
+            media_url = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1080&auto=format&fit=crop"
 
         if is_video:
             container_params["media_type"] = "REELS"
