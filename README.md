@@ -9,6 +9,7 @@ Este repositorio contiene el código fuente de "G-MKT AI", una plataforma SaaS p
 - **Cola de Tareas Asíncronas**: **Celery** apoyado por **Redis** (para que tareas pesadas como hacer videos con IA no congelen la app).
 - **Base de Datos**: **PostgreSQL**, gestionado localmente por Docker Compose.
 - **Cerebro Artificial**: Conectado e integrado mediante API a **Google Gemini** para generación de contenidos.
+- **Despliegue y Nube**: Infraestructura soportada mediante **AWS Lightsail**. (Revisar guía técnica: [Ver Guía de Despliegue en AWS Lightsail](LIGHTSAIL_DEPLOYMENT.md)).
 
 ---
 
