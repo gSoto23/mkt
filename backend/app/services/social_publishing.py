@@ -172,15 +172,23 @@ def publish_to_instagram(post: Post, account: SocialAccount):
             logger.error(f"[META API] Container Creation Failed, no ID returned: {container_res.json()}")
             return
         
-        # Ojo: IG procesa videos (y a veces imagenes de alta resolucion) de forma asíncrona.
-        logger.info("Meta requiere retraso asincrónico para procesar el Media Container. Iniciando Publish Loop...")
+        # Ojo: IG procesa videos (Reels) e imágenes de forma asíncrona.
+        # Reels pasan por chequeos de copyright que pueden tardar un minuto.
+        logger.info("[META API] Meta requiere retraso asincrónico para procesar el Media Container. Iniciando Publish Wait Loop...")
             
         # Paso 2: Publicar Contenedor con Retry Loop (Maneja el infame Error 9007 / 2207027)
         url_publish = f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media_publish"
         
-        max_retries = 4
+        # Videos requieren retries monstruosos (2 mins máx). Imágenes rápido.
+        max_retries = 15 if is_video else 5
+        
         for attempt in range(max_retries):
-            time.sleep(5)  # Esperar 5s (inicia acumulando)
+            # Dormir entre cada intento (Empieza rápido y luego frena)
+            delay = 10 if is_video else 5
+            logger.info(f"[META API] Esperando {delay}s para transcodificación en Meta (Intento {attempt + 1}/{max_retries})...")
+            import time
+            time.sleep(delay)
+            
             try:
                 publish_res = client.post(
                     url_publish,
@@ -191,15 +199,14 @@ def publish_to_instagram(post: Post, account: SocialAccount):
                     timeout=30.0
                 )
                 publish_res.raise_for_status()
-                logger.info(f"[META API] Publicación Exitosa en Intento {attempt + 1}")
+                logger.info(f"[META API] Publicación Exitosa Definitiva en el intento {attempt + 1}")
                 break  # Sale del loop de retry exitosamente
             except httpx.HTTPStatusError as e:
                 err_text = e.response.text
                 if "2207027" in err_text or "9007" in err_text:
                     if attempt < max_retries - 1:
-                        logger.warning(f"[META API] Contenedor aún en proceso (Intento {attempt + 1}). Esperando...")
                         continue
-                logger.error(f"[META API] Publish Error Response tras {max_retries} intentos: {err_text}")
+                logger.error(f"[META API] Publish Error definitivo tras agotar {max_retries} intentos: {err_text}")
                 raise e
 
 def publish_to_tiktok(post: Post, account: SocialAccount):
