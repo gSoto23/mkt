@@ -142,6 +142,16 @@ def check_status(brand_id: int, db: Session = Depends(get_db)):
         "total_accounts": len(accounts)
     }
 
+@router.get("/debug_meta/{brand_id}")
+async def debug_meta(brand_id: int, db: Session = Depends(get_db)):
+    acc = db.query(SocialAccount).filter(SocialAccount.brand_id == brand_id, SocialAccount.platform == 'facebook').first()
+    if not acc:
+        return {"error": "No facebook account connected"}
+    
+    async with httpx.AsyncClient() as client:
+        res = await client.get(f"https://graph.facebook.com/v19.0/me/permissions?access_token={acc.access_token}")
+        return res.json()
+
 @router.get("/media/{post_id}")
 def serve_media(post_id: int, db: Session = Depends(get_db)):
     """
