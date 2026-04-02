@@ -148,8 +148,15 @@ async def debug_meta(brand_id: int, db: Session = Depends(get_db)):
     if not acc:
         return {"error": "No facebook account connected"}
     
+    app_id = settings.META_CLIENT_ID
+    app_secret = settings.META_CLIENT_SECRET
+    app_access_token = f"{app_id}|{app_secret}"
+
     async with httpx.AsyncClient() as client:
-        res = await client.get(f"https://graph.facebook.com/v19.0/me/permissions?access_token={acc.access_token}")
+        res = await client.get("https://graph.facebook.com/v19.0/debug_token", params={
+            "input_token": acc.access_token,
+            "access_token": app_access_token
+        })
         return res.json()
 
 @router.get("/media/{post_id}")
