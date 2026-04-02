@@ -306,12 +306,12 @@ function StudioBoardContent() {
                             
                             <div style={{ 
                                 position: 'absolute', top: 12, right: 12, 
-                                background: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.9)' : 'rgba(245, 158, 11, 0.9)', 
-                                color: post.status === 'APPROVED' ? '#fff' : '#000', 
+                                background: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.9)' : post.status === 'PUBLISHED' ? 'rgba(56, 189, 248, 0.9)' : post.status === 'FAILED' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(245, 158, 11, 0.9)', 
+                                color: (post.status === 'APPROVED' || post.status === 'PUBLISHED' || post.status === 'FAILED') ? '#fff' : '#000', 
                                 fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold',
                                 backdropFilter: 'blur(4px)', zIndex: 10
                             }}>
-                                {post.status === 'APPROVED' ? '✓ APROBADO' : '● REVISIÓN PENDIENTE'}
+                                {post.status === 'APPROVED' ? '✓ APROBADO' : post.status === 'PUBLISHED' ? '🚀 PUBLICADO' : post.status === 'FAILED' ? '❌ ERROR API' : '● REVISIÓN PENDIENTE'}
                             </div>
 
                             {post.video_url ? (
@@ -522,6 +522,17 @@ function StudioBoardContent() {
                                   onFocus={e => e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)'}
                                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                               />
+
+                              {editingPost.platform_log && (
+                                  <div style={{ marginTop: '1.5rem', gridColumn: '1 / -1' }}>
+                                      <h4 style={{fontSize: '0.75rem', textTransform: 'uppercase', color: editingPost.status === 'FAILED' ? '#ef4444' : '#cbd5e1', letterSpacing: '1px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                                          {editingPost.status === 'FAILED' ? '🚨' : '📃'} Bitácora del Servidor
+                                      </h4>
+                                      <div style={{background: editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', border: `1px solid ${editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.05)'}`, color: editingPost.status === 'FAILED' ? '#fca5a5' : '#94a3b8', fontSize: '0.75rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontFamily: 'monospace'}}>
+                                          {editingPost.platform_log}
+                                      </div>
+                                  </div>
+                              )}
                            </div>
                         </div>
 
