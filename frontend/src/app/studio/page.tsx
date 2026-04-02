@@ -271,16 +271,6 @@ function StudioBoardContent() {
                     </div>
                 )}
 
-                {!loading && posts.length === 0 && !generating && (
-                    <div className="glass-card" style={{ textAlign: 'center', padding: '5rem 2rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: 'grayscale(0.5)' }}>🤖</div>
-                        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#fff' }}>No hay posts pendientes</h2>
-                        <p style={{ color: '#a1a1aa', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
-                            Haz clic en "Generar Lote Inteligente", define tu cuota por red social, y deja que Gemini estructure toda tu campaña en minutos guiada por el ADN.
-                        </p>
-                    </div>
-                )}
-
                 {/* Header de Parrilla con Filtros */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Calendario de Aprobación</h2>
@@ -290,6 +280,16 @@ function StudioBoardContent() {
                         <button onClick={() => setStatusFilter('ALL')} style={{ padding: '8px 20px', background: statusFilter === 'ALL' ? 'rgba(255, 255, 255, 0.1)' : 'transparent', color: statusFilter === 'ALL' ? '#f8fafc' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'ALL' ? 'rgba(255,255,255,0.1)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Todos</button>
                     </div>
                 </div>
+
+                {!loading && posts.length === 0 && !generating && (
+                    <div className="glass-card" style={{ textAlign: 'center', padding: '5rem 2rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: 'grayscale(0.5)' }}>🤖</div>
+                        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#fff' }}>No hay posts pendientes</h2>
+                        <p style={{ color: '#a1a1aa', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                            Haz clic en "Generar Lote Inteligente", define tu cuota por red social, y deja que Gemini estructure toda tu campaña en minutos guiada por el ADN.
+                        </p>
+                    </div>
+                )}
                 
                 {/* Grid de Tarjetas */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
