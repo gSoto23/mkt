@@ -135,21 +135,23 @@ def publish_to_instagram(post: Post, account: SocialAccount):
     caption = post.copy
     
     with httpx.Client() as client:
-        # Paso 1: Crear Contenedor de Media
-        container_data = {
+        # Paso 1: Crear Contenedor de Media (Instagram REQUIERE params en la URL, no en el Body)
+        url_media = f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media"
+        
+        container_params = {
             "caption": caption,
             "access_token": account.access_token
         }
         
         if is_video:
-            container_data["media_type"] = "REELS"
-            container_data["video_url"] = media_url
+            container_params["media_type"] = "REELS"
+            container_params["video_url"] = media_url
         else:
-            container_data["image_url"] = media_url
+            container_params["image_url"] = media_url
             
         container_res = client.post(
-            f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media", 
-            data=container_data, 
+            url_media, 
+            params=container_params, 
             timeout=60.0
         )
         container_res.raise_for_status()
@@ -164,9 +166,10 @@ def publish_to_instagram(post: Post, account: SocialAccount):
             time.sleep(10)
             
         # Paso 2: Publicar Contenedor
+        url_publish = f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media_publish"
         publish_res = client.post(
-            f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media_publish",
-            data={
+            url_publish,
+            params={
                 "creation_id": creation_id,
                 "access_token": account.access_token
             },
