@@ -92,7 +92,22 @@ def generate_batch(request: GenerateBatchRequest, db: Session = Depends(get_db))
 @router.get("/posts/{brand_id}")
 def get_pending_posts(brand_id: int, db: Session = Depends(get_db)):
     posts = db.query(Post).filter(Post.brand_id == brand_id).order_by(Post.scheduled_for.asc()).all()
-    return posts
+    results = []
+    for p in posts:
+        results.append({
+            "id": p.id,
+            "brand_id": p.brand_id,
+            "platform": p.platform,
+            "copy": p.copy,
+            "image_url": p.image_url,
+            "video_url": p.video_url,
+            "media_prompt": p.media_prompt,
+            "status": p.status,
+            "platform_log": p.platform_log,
+            "scheduled_for": p.scheduled_for.isoformat() + "Z" if p.scheduled_for else None,
+            "approved_at": p.approved_at.isoformat() + "Z" if p.approved_at else None
+        })
+    return results
 
 @router.get("/posts_global")
 def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
@@ -119,8 +134,8 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
             "media_prompt": p.media_prompt,
             "status": p.status,
             "platform_log": p.platform_log,
-            "scheduled_for": p.scheduled_for.isoformat() if p.scheduled_for else None,
-            "approved_at": p.approved_at.isoformat() if p.approved_at else None
+            "scheduled_for": p.scheduled_for.isoformat() + "Z" if p.scheduled_for else None,
+            "approved_at": p.approved_at.isoformat() + "Z" if p.approved_at else None
         })
     return results
 
@@ -141,12 +156,14 @@ def update_post(post_id: int, request: PostUpdateRequest, db: Session = Depends(
     post.status = request.status
     if request.scheduled_for:
         try:
-            post.scheduled_for = datetime.fromisoformat(request.scheduled_for.replace('Z', '+00:00'))
+            import pytz
+            d_tz = datetime.fromisoformat(request.scheduled_for.replace('Z', '+00:00'))
+            post.scheduled_for = d_tz.astimezone(pytz.utc).replace(tzinfo=None)
         except ValueError:
             pass # fallback to original
 
     if request.status == "APPROVED":
-        post.approved_at = datetime.now()
+        post.approved_at = datetime.utcnow()
     db.commit()
     
     return {"message": "Post actualizado correctamente", "post_id": post.id}

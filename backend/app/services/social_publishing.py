@@ -2,7 +2,6 @@ import os
 import httpx
 import asyncio
 from datetime import datetime
-import pytz
 from sqlalchemy.orm import Session
 from celery.utils.log import get_task_logger
 
@@ -21,8 +20,7 @@ def check_scheduled_posts():
     """
     db: Session = SessionLocal()
     try:
-        cr_tz = pytz.timezone("America/Costa_Rica")
-        now = datetime.now(cr_tz).replace(tzinfo=None) # Local time naive (Costa Rica)
+        now = datetime.utcnow() # Meta Graph timezone, assuming UTC
         posts_to_publish = db.query(Post).filter(
             Post.status == "APPROVED",
             Post.scheduled_for <= now
