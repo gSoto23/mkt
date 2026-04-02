@@ -210,9 +210,28 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
         mime_type = header.split(":")[1].split(";")[0]
         binary_data = base64.b64decode(encoded)
         
-        if mime_type != "image/jpeg" and filename.endswith(".jpg"):
-            logger.error(f"[MEDIA ENDPOINT] ALERTA: Archivo pedido como .jpg pero el verdadero tipo es {mime_type}. (Instagram puede bloquearlo)")
+        # --- NUEVO: Sanitización Forzada de Meta a Baseline JPEG con Pillow ---
+        # Solo lo aplicamos si NO es un video mp4
+        if not filename.endswith('.mp4'):
+            import io
+            from PIL import Image
             
+            # Forzar carga e ignorar perfiles corruptos 
+            img = Image.open(io.BytesIO(binary_data))
+            
+            # Forzar sRGB/RGB (elimina canales Alpha .png o CMYK)
+            if img.mode in ("RGBA", "P", "CMYK", "LA"):
+                img = img.convert("RGB")
+            elif img.mode != "RGB":
+                img = img.convert("RGB")
+                
+            # Guardar en un buffer limpio como Standard JPEG compatible
+            clean_io = io.BytesIO()
+            img.save(clean_io, format="JPEG", quality=90, optimize=False)
+            binary_data = clean_io.getvalue()
+            mime_type = "image/jpeg"
+            logger.info("[MEDIA ENDPOINT] Imagen limpiada exitosamente con Pillow a Baseline JPEG")
+        
         logger.info(f"[MEDIA ENDPOINT] Exito decodificando Base64. Devolviendo Mime: {mime_type}, Bytes: {len(binary_data)}")
         headers = {
             "Content-Length": str(len(binary_data)),
