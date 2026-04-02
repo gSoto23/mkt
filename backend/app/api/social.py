@@ -165,7 +165,7 @@ async def debug_meta(brand_id: int, db: Session = Depends(get_db)):
         })
         return res.json()
 
-@router.get("/media/{filename}")
+@router.api_route("/media/{filename}", methods=["GET", "HEAD"])
 def serve_media(filename: str, db: Session = Depends(get_db)):
     """
     Ruta pública necesaria para que los servidores de Meta (Graph API)
