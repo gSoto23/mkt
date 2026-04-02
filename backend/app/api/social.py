@@ -235,7 +235,9 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
         logger.info(f"[MEDIA ENDPOINT] Exito decodificando Base64. Devolviendo Mime: {mime_type}, Bytes: {len(binary_data)}")
         headers = {
             "Content-Length": str(len(binary_data)),
-            "Content-Disposition": f'inline; filename="{filename}"'
+            "Cache-Control": "public, max-age=31536000",
+            "Access-Control-Allow-Origin": "*",
+            "Accept-Ranges": "bytes"
         }
         return Response(content=binary_data, media_type=mime_type, headers=headers)
     except Exception as e:
