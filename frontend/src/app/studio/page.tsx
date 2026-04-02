@@ -27,6 +27,7 @@ function StudioBoardContent() {
     const [editCopy, setEditCopy] = useState('');
     const [editPrompt, setEditPrompt] = useState('');
     const [editDate, setEditDate] = useState('');
+    const [editPlatform, setEditPlatform] = useState('');
     const [generatingImage, setGeneratingImage] = useState(false);
     const [generatingProImage, setGeneratingProImage] = useState(false);
     const [generatingVideo, setGeneratingVideo] = useState(false);
@@ -101,6 +102,7 @@ function StudioBoardContent() {
                     copy: editCopy, 
                     media_prompt: editPrompt, 
                     status: 'APPROVED',
+                    platform: editPlatform,
                     scheduled_for: new Date(editDate).toISOString()
                 })
             });
@@ -126,6 +128,7 @@ function StudioBoardContent() {
         setEditingPost(post); 
         setEditCopy(post.copy); 
         setEditPrompt(post.media_prompt);
+        setEditPlatform(post.platform || 'Facebook');
         const d = new Date(post.scheduled_for); 
         // Convert to local YYYY-MM-DDThh:mm
         const dStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
@@ -441,11 +444,18 @@ function StudioBoardContent() {
                         <div style={{ padding: '2rem 2.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                                 <div style={{width: '44px', height: '44px', borderRadius: '12px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 4px 15px rgba(99, 102, 241, 0.4)'}}>
-                                    {editingPost.platform === 'Facebook' ? '📘' : editingPost.platform === 'Instagram' ? '📸' : '🎵'}
+                                    {editPlatform === 'Facebook' ? '📘' : editPlatform === 'Instagram' ? '📸' : '🎵'}
                                 </div>
                                 <div>
-                                    <h2 style={{ fontSize: '1.4rem', margin: 0, color: '#f8fafc', fontWeight: 600 }}>Revivisión: {editingPost.platform}</h2>
-                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>Edición manual antes de encolar en auto-pilot.</p>
+                                    <h2 style={{ fontSize: '1.4rem', margin: 0, color: '#f8fafc', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        Revivisión: 
+                                        <select value={editPlatform} onChange={e => setEditPlatform(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '1.2rem', padding: '4px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600 }}>
+                                            <option value="Facebook">Facebook</option>
+                                            <option value="Instagram">Instagram</option>
+                                            <option value="TikTok">TikTok</option>
+                                        </select>
+                                    </h2>
+                                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>Esta publicación se enviará ÚNICAMENTE a esta red.</p>
                                 </div>
                             </div>
                             <div style={{ position: 'relative' }}>

@@ -143,6 +143,7 @@ class PostUpdateRequest(BaseModel):
     copy: str
     media_prompt: str
     status: str
+    platform: str = None
     scheduled_for: str = None
 
 @router.put("/posts/{post_id}")
@@ -154,6 +155,8 @@ def update_post(post_id: int, request: PostUpdateRequest, db: Session = Depends(
     post.copy = request.copy
     post.media_prompt = request.media_prompt
     post.status = request.status
+    if request.platform:
+        post.platform = request.platform
     if request.scheduled_for:
         try:
             from datetime import timezone

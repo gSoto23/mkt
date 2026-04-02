@@ -59,14 +59,26 @@ def publish_post_task(self, post_id: int):
             db.commit()
             return
             
-        # Idealmente el post definiría si va para FB o IG, por ahora intentamos en todas vinculadas
+        # Se publica EXCLUSIVAMENTE en la plataforma definida en post.platform (Ej: 'Facebook', 'Instagram')
+        platform_lower = str(post.platform).lower()
+        posted_any = False
+        
         for acc in social_accs:
-            if acc.platform == "facebook":
-                publish_to_facebook(post, acc)
-            elif acc.platform == "instagram":
-                publish_to_instagram(post, acc)
-            elif acc.platform == "tiktok":
-                publish_to_tiktok(post, acc)
+            if acc.platform.lower() == platform_lower:
+                if acc.platform == "facebook":
+                    publish_to_facebook(post, acc)
+                elif acc.platform == "instagram":
+                    publish_to_instagram(post, acc)
+                elif acc.platform == "tiktok":
+                    publish_to_tiktok(post, acc)
+                posted_any = True
+                
+        if not posted_any:
+            logger.warning(f"Post {post.id} skipped for {post.platform}: No token found for this specific platform.")
+            post.status = "FAILED"
+            post.platform_log = f"Error: Elegiste la red {post.platform}, pero tu cuenta no está vinculada. Conéctala primero."
+            db.commit()
+            return
                 
         post.status = "PUBLISHED"
         post.platform_log = "Publicación ejecutada con éxito en los servidores de Meta/TikTok vía Graph API."
