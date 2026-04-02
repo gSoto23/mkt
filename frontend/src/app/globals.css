@@ -49,7 +49,49 @@ body {
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: all 0.2s;
+}
+
+/* RESPONSIVE DESIGN (MÓVILES) */
+@media (max-width: 768px) {
+  /* Panel de Control Layout */
+  .studio-layout {
+    flex-direction: column !important;
+  }
+  
+  .studio-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Modals y Botones */
+  .generate-modal-content {
+    width: 95vw !important;
+    max-height: 95vh !important;
+    padding: 1rem !important;
+  }
+  
+  .hero-title {
+    font-size: 2.2rem !important;
+  }
+  
+  /* Ajuste de Grillas */
+  .calendar-grid {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .social-login-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    display: inline-block;
+  }
+  
+  /* Esconder elementos innecesarios en móvil */
+  .mobile-hide {
+    display: none !important;
+  }
 }
 
 .btn-primary:hover {

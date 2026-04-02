@@ -207,174 +207,172 @@ function StudioBoardContent() {
     };
 
     return (
-        <main style={{ padding: '3rem 2rem', maxWidth: '1400px', margin: '0 auto', fontFamily: 'var(--font-inter)' }}>
+        <main className="studio-layout" style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--font-inter)' }}>
             
-            {/* Header Section */}
-            <div style={{ marginBottom: '3rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '2rem' }}>
+            {/* PANEL LATERAL: Control AI */}
+            <aside className="studio-sidebar" style={{ width: '300px', background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.05)', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
                 <Link href="/" style={{ color: '#a1a1aa', textDecoration: 'none', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px', transition: 'color 0.2s' }}
                       onMouseOver={e => e.currentTarget.style.color = '#fff'}
                       onMouseOut={e => e.currentTarget.style.color = '#a1a1aa'}>
                     ← Volver al Dashboard
                 </Link>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '1.5rem', flexWrap: 'wrap', gap: '2rem' }}>
-                    <div>
-                        <h1 className="hero-title" style={{ fontSize: '3rem', margin: '0', lineHeight: '1.1' }}>Calendario de Aprobación</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '1rem' }}>
-                           <span style={{ background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', padding: '4px 12px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: '600', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
-                               {brandInfo ? brandInfo.name : 'Cargando...'}
-                           </span>
-                           <span style={{ color: '#a1a1aa', fontSize: '0.9rem' }}>Workspace Autónomo</span>
-                           <Link href={`/studio/settings?brandId=${brandId}`} style={{ marginLeft: '1rem', background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
-                               ⚙️ Ajustar ADN de Marca
-                           </Link>
-                           {/* Botón de Meta */}
-                           <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/meta_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? '#2ecc71' : '#38bdf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
-                               {(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? `✅ Meta Conectado` : '🔗 Meta / IG'}
-                           </a>
-                           {/* Botón de TikTok */}
-                           <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/tiktok_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.1)' : 'rgba(236, 72, 153, 0.1)', color: socialStatus?.platforms?.includes('tiktok') ? '#2ecc71' : '#ec4899', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.3)' : 'rgba(236, 72, 153, 0.3)'}` }}>
-                               {socialStatus?.platforms?.includes('tiktok') ? `✅ TikTok Conectado` : '🎵 Conectar TikTok'}
-                           </a>
-                        </div>
+                <div style={{ marginTop: '3rem' }}>
+                    <h1 style={{ fontSize: '1.5rem', margin: '0 0 1rem 0' }}>{brandInfo ? brandInfo.name : 'Cargando...'}</h1>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <Link href={`/studio/settings?brandId=${brandId}`} style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            ⚙️ Ajustar ADN de Marca
+                        </Link>
+                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/meta_login?brand_id=${brandId}`} style={{ background: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? '#2ecc71' : '#38bdf8', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: `1px solid ${(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
+                            {(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? `✅ Meta Conectado` : '🔗 Meta / IG'}
+                        </a>
+                        <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/tiktok_login?brand_id=${brandId}`} style={{ background: socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.1)' : 'rgba(236, 72, 153, 0.1)', color: socialStatus?.platforms?.includes('tiktok') ? '#2ecc71' : '#ec4899', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: `1px solid ${socialStatus?.platforms?.includes('tiktok') ? 'rgba(46, 204, 113, 0.3)' : 'rgba(236, 72, 153, 0.3)'}` }}>
+                            {socialStatus?.platforms?.includes('tiktok') ? `✅ TikTok Conectado` : '🎵 Conectar TikTok'}
+                        </a>
                     </div>
-                    
+                </div>
+
+                <div style={{ marginTop: 'auto' }}>
                     <button 
                         onClick={handleOpenGenerateSetup} 
                         disabled={generating || loading}
                         className="btn-primary"
                         style={{ 
+                            width: '100%',
                             background: generating ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
                             color: generating ? '#a1a1aa' : 'white',
                             border: 'none',
-                            padding: '14px 28px',
+                            padding: '14px',
                             borderRadius: '12px',
                             fontWeight: '600',
-                            fontSize: '1rem',
                             cursor: generating ? 'wait' : 'pointer',
                             display: 'flex',
                             alignItems: 'center',
+                            justifyContent: 'center',
                             gap: '10px',
-                            boxShadow: generating ? 'none' : '0 10px 25px rgba(99, 102, 241, 0.3)',
                             transition: 'all 0.3s ease'
                         }}
                     >
                         {generating ? (
-                           <> <div style={{width: '20px', height: '20px', border: '3px solid', borderColor: 'transparent #fff #fff #fff', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> Trabajando con la IA... </>
-                        ) : '✨ Generar Lote Inteligente'}
+                           <> <div style={{width: '20px', height: '20px', border: '3px solid', borderColor: 'transparent #fff #fff #fff', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> Trabajando... </>
+                        ) : '✨ Generar Lote'}
                     </button>
                 </div>
-            </div>
+            </aside>
 
-            {loading && (
-                <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '4rem' }}>
-                    <div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent var(--primary) var(--primary) var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem'}} />
-                    Sincronizando calendario de la marca...
-                </div>
-            )}
+            {/* ZONA CENTRAL: Calendario & Tablero */}
+            <section style={{ flex: 1, padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+                
+                {loading && (
+                    <div style={{ textAlign: 'center', color: '#a1a1aa', padding: '4rem' }}>
+                        <div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent var(--primary) var(--primary) var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem'}} />
+                        Sincronizando calendario de la marca...
+                    </div>
+                )}
 
-            {!loading && posts.length === 0 && !generating && (
-                <div className="glass-card" style={{ textAlign: 'center', padding: '5rem 2rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
-                    <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: 'grayscale(0.5)' }}>🤖</div>
-                    <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#fff' }}>No hay posts pendientes</h2>
-                    <p style={{ color: '#a1a1aa', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
-                        Haz clic en "Generar Lote Inteligente", define tu cuota por red social, y deja que Gemini estructure toda tu campaña en minutos guiada por el ADN.
-                    </p>
-                </div>
-            )}
+                {!loading && posts.length === 0 && !generating && (
+                    <div className="glass-card" style={{ textAlign: 'center', padding: '5rem 2rem', background: 'rgba(255,255,255,0.02)', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                        <div style={{ fontSize: '4rem', marginBottom: '1.5rem', filter: 'grayscale(0.5)' }}>🤖</div>
+                        <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem', color: '#fff' }}>No hay posts pendientes</h2>
+                        <p style={{ color: '#a1a1aa', maxWidth: '400px', margin: '0 auto', lineHeight: '1.5' }}>
+                            Haz clic en "Generar Lote Inteligente", define tu cuota por red social, y deja que Gemini estructure toda tu campaña en minutos guiada por el ADN.
+                        </p>
+                    </div>
+                )}
 
-            {/* Header de Parrilla con Filtros */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3rem', marginBottom: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
-                <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Calendario de Aprobación</h2>
-                <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                    <button onClick={() => setStatusFilter('PENDING_APPROVAL')} style={{ padding: '8px 20px', background: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.15)' : 'transparent', color: statusFilter === 'PENDING_APPROVAL' ? '#fbbf24' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.3)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Pendientes</button>
-                    <button onClick={() => setStatusFilter('APPROVED')} style={{ padding: '8px 20px', background: statusFilter === 'APPROVED' ? 'rgba(46, 204, 113, 0.15)' : 'transparent', color: statusFilter === 'APPROVED' ? '#2ecc71' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'APPROVED' ? 'rgba(46, 204, 113, 0.3)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Aprobados</button>
-                    <button onClick={() => setStatusFilter('ALL')} style={{ padding: '8px 20px', background: statusFilter === 'ALL' ? 'rgba(255, 255, 255, 0.1)' : 'transparent', color: statusFilter === 'ALL' ? '#f8fafc' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'ALL' ? 'rgba(255,255,255,0.1)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Todos</button>
+                {/* Header de Parrilla con Filtros */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                    <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Calendario de Aprobación</h2>
+                    <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        <button onClick={() => setStatusFilter('PENDING_APPROVAL')} style={{ padding: '8px 20px', background: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.15)' : 'transparent', color: statusFilter === 'PENDING_APPROVAL' ? '#fbbf24' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.3)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Pendientes</button>
+                        <button onClick={() => setStatusFilter('APPROVED')} style={{ padding: '8px 20px', background: statusFilter === 'APPROVED' ? 'rgba(46, 204, 113, 0.15)' : 'transparent', color: statusFilter === 'APPROVED' ? '#2ecc71' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'APPROVED' ? 'rgba(46, 204, 113, 0.3)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Aprobados</button>
+                        <button onClick={() => setStatusFilter('ALL')} style={{ padding: '8px 20px', background: statusFilter === 'ALL' ? 'rgba(255, 255, 255, 0.1)' : 'transparent', color: statusFilter === 'ALL' ? '#f8fafc' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'ALL' ? 'rgba(255,255,255,0.1)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Todos</button>
+                    </div>
                 </div>
-            </div>
-            
-            {/* Grid de Tarjetas */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
-                {posts.filter(p => statusFilter === 'ALL' || p.status === statusFilter).map(post => (
-                    <div key={post.id} className="glass-card" style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        position: 'relative', 
-                        padding: '0', 
-                        overflow: 'hidden',
-                        borderColor: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.4)' : 'rgba(245, 158, 11, 0.3)',
-                        boxShadow: post.status === 'APPROVED' ? '0 10px 40px rgba(46, 204, 113, 0.05)' : '0 10px 30px rgba(0,0,0,0.2)'
-                    }}>
-                        
-                        <div style={{ 
-                            position: 'absolute', top: 12, right: 12, 
-                            background: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.9)' : 'rgba(245, 158, 11, 0.9)', 
-                            color: post.status === 'APPROVED' ? '#fff' : '#000', 
-                            fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold',
-                            backdropFilter: 'blur(4px)', zIndex: 10
+                
+                {/* Grid de Tarjetas */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '2rem' }}>
+                    {posts.filter(p => statusFilter === 'ALL' || p.status === statusFilter).map(post => (
+                        <div key={post.id} className="glass-card" style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            position: 'relative', 
+                            padding: '0', 
+                            overflow: 'hidden',
+                            borderColor: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.4)' : 'rgba(245, 158, 11, 0.3)',
+                            boxShadow: post.status === 'APPROVED' ? '0 10px 40px rgba(46, 204, 113, 0.05)' : '0 10px 30px rgba(0,0,0,0.2)'
                         }}>
-                            {post.status === 'APPROVED' ? '✓ APROBADO' : '● REVISIÓN PENDIENTE'}
-                        </div>
-
-                        {post.video_url ? (
-                            <div style={{ position: 'relative', width: '100%', height: '220px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
-                                <video src={post.video_url} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(239, 68, 68, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1px' }}>REEL</div>
-                            </div>
-                        ) : post.image_url ? (
-                            <img src={post.image_url} alt="Generado" style={{ width: '100%', height: '220px', objectFit: 'cover', borderBottom: '1px solid rgba(255,255,255,0.05)' }} />
-                        ) : (
-                            <div style={{ width: '100%', height: '220px', background: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 100%)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', padding: '1rem', overflowY: 'auto' }}>
-                                <span style={{fontSize:'1.5rem', marginBottom:'0.5rem', opacity: 0.5}}>🎨 Boceto</span>
-                                <span style={{fontSize:'0.85rem', color:'#fff', fontStyle:'italic', opacity: 0.8, lineHeight: '1.5', textAlign: 'left'}}>"{post.media_prompt}"</span>
-                            </div>
-                        )}
-
-                        <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#a1a1aa', marginBottom: '1rem' }}>
-                                <span style={{background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px'}}>{post.platform}</span>
-                                <span>🗓 {formatDate(post.scheduled_for)}</span>
-                            </div>
-
-                            <div style={{ flex: 1, fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: '1.6', color: '#e4e4e7' }}>
-                                {post.copy.length > 150 ? post.copy.substring(0, 150) + '...' : post.copy}
-                            </div>
                             
-                            {post.approved_at && (
-                                <div style={{fontSize: '0.75rem', color: '#a1a1aa', marginBottom: '1rem', fontStyle: 'italic'}}>
-                                    Aprobación humana: {formatDate(post.approved_at)}
+                            <div style={{ 
+                                position: 'absolute', top: 12, right: 12, 
+                                background: post.status === 'APPROVED' ? 'rgba(46, 204, 113, 0.9)' : 'rgba(245, 158, 11, 0.9)', 
+                                color: post.status === 'APPROVED' ? '#fff' : '#000', 
+                                fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 'bold',
+                                backdropFilter: 'blur(4px)', zIndex: 10
+                            }}>
+                                {post.status === 'APPROVED' ? '✓ APROBADO' : '● REVISIÓN PENDIENTE'}
+                            </div>
+
+                            {post.video_url ? (
+                                <div style={{ position: 'relative', width: '100%', height: '220px', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                                    <video src={post.video_url} autoPlay loop muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    <div style={{ position: 'absolute', top: 8, left: 8, background: 'rgba(239, 68, 68, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.65rem', fontWeight: 700, letterSpacing: '1px' }}>REEL</div>
+                                </div>
+                            ) : post.image_url ? (
+                                <img src={post.image_url} alt="Generado" style={{ width: '100%', height: '220px', objectFit: 'cover', borderBottom: '1px solid rgba(255,255,255,0.05)' }} />
+                            ) : (
+                                <div style={{ width: '100%', height: '220px', background: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 100%)', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', padding: '1rem', overflowY: 'auto' }}>
+                                    <span style={{fontSize:'1.5rem', marginBottom:'0.5rem', opacity: 0.5}}>🎨 Boceto</span>
+                                    <span style={{fontSize:'0.85rem', color:'#fff', fontStyle:'italic', opacity: 0.8, lineHeight: '1.5', textAlign: 'left'}}>"{post.media_prompt}"</span>
                                 </div>
                             )}
 
-                            {post.status === 'PENDING_APPROVAL' ? (
-                                <button 
-                                    onClick={() => openEditModal(post)}
-                                    style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', cursor: 'pointer', width: '100%', fontWeight: '600', transition: 'all 0.2s', marginBottom: '8px' }}
-                                    onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
-                                    onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
-                                >
-                                    Revisar y Concretar Arte →
-                                </button>
-                            ) : (
-                                <button 
-                                    onClick={() => openEditModal(post)}
-                                    style={{ background: 'transparent', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.3)', padding: '12px', borderRadius: '8px', cursor: 'pointer', width: '100%', fontWeight: '600', transition: 'all 0.2s', marginBottom: '8px' }}
-                                    onMouseOver={e => e.currentTarget.style.background = 'rgba(46, 204, 113, 0.1)'}
-                                    onMouseOut={e => e.currentTarget.style.background = 'transparent'}
-                                >
-                                    Revisar Arte / Editar
-                                </button>
-                            )}
-                            <button onClick={() => handleDelete(post.id)} style={{background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '4px'}}>🗑 Eliminar</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                            <div style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#a1a1aa', marginBottom: '1rem' }}>
+                                    <span style={{background: 'rgba(255,255,255,0.1)', padding: '4px 8px', borderRadius: '4px'}}>{post.platform}</span>
+                                    <span>🗓 {formatDate(post.scheduled_for)}</span>
+                                </div>
 
-            {/* Modal de Configuración Inicial */}
+                                <div style={{ flex: 1, fontSize: '0.95rem', marginBottom: '1.5rem', lineHeight: '1.6', color: '#e4e4e7' }}>
+                                    {post.copy.length > 150 ? post.copy.substring(0, 150) + '...' : post.copy}
+                                </div>
+                                
+                                {post.approved_at && (
+                                    <div style={{fontSize: '0.75rem', color: '#a1a1aa', marginBottom: '1rem', fontStyle: 'italic'}}>
+                                        Aprobación humana: {formatDate(post.approved_at)}
+                                    </div>
+                                )}
+
+                                {post.status === 'PENDING_APPROVAL' ? (
+                                    <button 
+                                        onClick={() => openEditModal(post)}
+                                        style={{ background: 'rgba(255,255,255,0.05)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', padding: '12px', borderRadius: '8px', cursor: 'pointer', width: '100%', fontWeight: '600', transition: 'all 0.2s', marginBottom: '8px' }}
+                                        onMouseOver={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
+                                        onMouseOut={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; }}
+                                    >
+                                        Revisar y Concretar Arte →
+                                    </button>
+                                ) : (
+                                    <button 
+                                        onClick={() => openEditModal(post)}
+                                        style={{ background: 'transparent', color: '#2ecc71', border: '1px solid rgba(46, 204, 113, 0.3)', padding: '12px', borderRadius: '8px', cursor: 'pointer', width: '100%', fontWeight: '600', transition: 'all 0.2s', marginBottom: '8px' }}
+                                        onMouseOver={e => e.currentTarget.style.background = 'rgba(46, 204, 113, 0.1)'}
+                                        onMouseOut={e => e.currentTarget.style.background = 'transparent'}
+                                    >
+                                        Revisar Arte / Editar
+                                    </button>
+                                )}
+                                <button onClick={() => handleDelete(post.id)} style={{background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '0.8rem', padding: '4px'}}>🗑 Eliminar</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* MODAL: Configurar Generación AI */}
             {showGenerateSetup && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
-                    <div className="glass-card" style={{ width: '500px', maxWidth: '100%', background: '#18181b', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
+                    <div className="glass-card generate-modal-content" style={{ width: '500px', maxWidth: '100%', padding: '2rem', borderRadius: '16px', background: '#18181b', border: '1px solid rgba(255,255,255,0.1)' }}>
                          <h2 style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>Estrategia del Lote</h2>
                          <p style={{color: '#a1a1aa', fontSize: '0.9rem', marginBottom: '2rem'}}>
                             Define exactamente la cantidad de posts para cada red social soportada en el ADN de esta marca.

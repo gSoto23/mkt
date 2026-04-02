@@ -75,3 +75,13 @@ def update_brand(brand_id: int, request: BrandUpdateADN, db: Session = Depends(g
     
     db.commit()
     return {"message": "ADN Actualizado correctamente"}
+
+@router.delete("/{brand_id}")
+def delete_brand(brand_id: int, db: Session = Depends(get_db)):
+    brand = db.query(Brand).filter(Brand.id == brand_id).first()
+    if not brand:
+         raise HTTPException(status_code=404, detail="Marca no encontrada")
+         
+    db.delete(brand)
+    db.commit()
+    return {"message": "Marca y todo su contenido asociado fueron eliminados correctamente"}

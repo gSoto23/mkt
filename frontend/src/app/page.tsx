@@ -42,6 +42,23 @@ export default function Home() {
       });
   };
 
+  const handleDeleteBrand = async (e: React.MouseEvent, id: number) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!window.confirm("🔴 ALERTA: ¿Estás seguro de eliminar esta Marca? Esto destruirá TODOS sus posts de IA, historiales y conexiones sociales (Meta/TikTok) para siempre.")) return;
+      
+      try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/brands/${id}`, { method: 'DELETE' });
+          if(res.ok) {
+              setBrands(prev => prev.filter((b: any) => b.id !== id));
+          } else {
+              alert("Error eliminando marca");
+          }
+      } catch(err) {
+          console.error(err);
+      }
+  };
+
   const handleCreateBrand = async (e: React.FormEvent) => {
       e.preventDefault();
       setSaving(true);
@@ -101,12 +118,15 @@ export default function Home() {
       <section>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '2rem', textAlign: 'center' }}>Selecciona tu Workspace (Marca)</h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
           
           {brands.map((b) => (
             <Link href={`/studio?brandId=${b.id}`} key={b.id} style={{textDecoration:'none', color:'inherit'}}>
-                <div className="glass-card" style={{ cursor: 'pointer', transition: 'transform 0.2s', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
-                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem', color: b.visual_identity?.colors?.[0] || '#fff' }}>{b.name}</h3>
+                <div className="glass-card" style={{ position: 'relative', cursor: 'pointer', transition: 'transform 0.2s', border: '1px solid rgba(255,255,255,0.05)' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.02)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+                  <button onClick={(e) => handleDeleteBrand(e, b.id)} style={{ position: 'absolute', top: '15px', right: '15px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: '8px', padding: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10, transition: 'background 0.2s' }} onMouseOver={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.3)'} onMouseOut={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'}>
+                      🗑️
+                  </button>
+                  <h3 style={{ fontSize: '1.3rem', marginBottom: '0.8rem', color: b.visual_identity?.colors?.[0] || '#fff', paddingRight: '40px' }}>{b.name}</h3>
                   <p style={{ color: '#a1a1aa', fontSize: '0.85rem', marginBottom: '1.5rem', lineHeight: '1.4' }}>
                     {b.target_audience ? b.target_audience.substring(0,60) + "..." : "Sin configuración de audiencia..."}
                   </p>

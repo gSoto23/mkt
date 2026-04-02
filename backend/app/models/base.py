@@ -31,6 +31,9 @@ class Brand(Base):
     owner_id = Column(Integer, ForeignKey("users.id"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+    posts = relationship("Post", back_populates="brand", cascade="all, delete-orphan")
+    social_accounts = relationship("SocialAccount", back_populates="brand", cascade="all, delete-orphan")
+
 class SocialAccount(Base):
     __tablename__ = "social_accounts"
     
@@ -41,6 +44,8 @@ class SocialAccount(Base):
     access_token = Column(String)
     refresh_token = Column(String, nullable=True)
     expires_at = Column(DateTime, nullable=True)
+    
+    brand = relationship("Brand", back_populates="social_accounts")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -60,4 +65,4 @@ class Post(Base):
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    brand = relationship("Brand")
+    brand = relationship("Brand", back_populates="posts")
