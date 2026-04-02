@@ -118,6 +118,7 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
             "video_url": p.video_url,
             "media_prompt": p.media_prompt,
             "status": p.status,
+            "platform_log": p.platform_log,
             "scheduled_for": p.scheduled_for.isoformat() if p.scheduled_for else None,
             "approved_at": p.approved_at.isoformat() if p.approved_at else None
         })

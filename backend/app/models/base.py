@@ -58,8 +58,9 @@ class Post(Base):
     image_url = Column(String, nullable=True)
     video_url = Column(Text, nullable=True) # Para reels MP4 en Base64
     media_prompt = Column(Text, nullable=True) # Prompt de imagen que sugirió Gemini
-    
-    status = Column(String, default="PENDING_APPROVAL") # PENDING_APPROVAL, APPROVED, PUBLISHED
+    platform_log = Column(Text, nullable=True) # Log detallado de Meta/TikTok
+
+    status = Column(String, default="PENDING_APPROVAL") # PENDING_APPROVAL, APPROVED, PUBLISHED, FAILED
     scheduled_for = Column(DateTime, nullable=True)
     approved_at = Column(DateTime, nullable=True)
     

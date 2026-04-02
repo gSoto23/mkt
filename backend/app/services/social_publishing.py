@@ -2,6 +2,7 @@ import os
 import httpx
 import asyncio
 from datetime import datetime
+import pytz
 from sqlalchemy.orm import Session
 from celery.utils.log import get_task_logger
 
@@ -20,7 +21,8 @@ def check_scheduled_posts():
     """
     db: Session = SessionLocal()
     try:
-        now = datetime.utcnow() # Meta Graph timezone, assuming UTC
+        cr_tz = pytz.timezone("America/Costa_Rica")
+        now = datetime.now(cr_tz).replace(tzinfo=None) # Local time naive (Costa Rica)
         posts_to_publish = db.query(Post).filter(
             Post.status == "APPROVED",
             Post.scheduled_for <= now
@@ -55,6 +57,7 @@ def publish_post_task(self, post_id: int):
         if not social_accs:
             logger.warning(f"Post {post.id} cannot be published: No Social Accounts connected for brand {post.brand_id}.")
             post.status = "FAILED"
+            post.platform_log = "Error Fatal: No hay páginas de Facebook/Instagram/TikTok conectadas al sistema del cliente."
             db.commit()
             return
             
@@ -68,18 +71,21 @@ def publish_post_task(self, post_id: int):
                 publish_to_tiktok(post, acc)
                 
         post.status = "PUBLISHED"
+        post.platform_log = "Publicación ejecutada con éxito en los servidores de Meta/TikTok vía Graph API."
         db.commit()
         logger.info(f"Post {post.id} published successfully.")
         
     except httpx.HTTPStatusError as exc:
         logger.error(f"HTTP Meta API Error en publish: {exc.response.text}")
         post.status = "FAILED"
+        post.platform_log = f"Fallo al publicar (HTTP Error). Graph API Info:\n\n{exc.response.text}"
         db.commit()
         raise self.retry(exc=exc, countdown=60 * 5) # Reintenta en 5 min si Meta falla por timeout
         
     except Exception as exc:
         logger.error(f"Unexpected error in publish_post_task: {exc}")
         post.status = "FAILED"
+        post.platform_log = f"Excepción interna fatal de Python:\n{str(exc)}"
         db.commit()
     finally:
         db.close()

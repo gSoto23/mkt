@@ -233,6 +233,17 @@ export default function GlobalCalendar() {
                                           Sin material gráfico generado.<br/>(Pendiente de Dirección de Arte)
                                       </div>
                                   )}
+                                  
+                                  {selectedPost.platform_log && (
+                                      <div style={{ marginTop: '1.5rem' }}>
+                                          <h4 style={{fontSize: '0.75rem', textTransform: 'uppercase', color: selectedPost.status === 'FAILED' ? '#ef4444' : '#cbd5e1', letterSpacing: '1px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px'}}>
+                                              {selectedPost.status === 'FAILED' ? '🚨' : '📃'} Bitácora del Servidor
+                                          </h4>
+                                          <div style={{background: selectedPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', border: `1px solid ${selectedPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.05)'}`, color: selectedPost.status === 'FAILED' ? '#fca5a5' : '#94a3b8', fontSize: '0.75rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontFamily: 'monospace'}}>
+                                              {selectedPost.platform_log}
+                                          </div>
+                                      </div>
+                                  )}
                               </div>
                          </div>
 

@@ -14,6 +14,14 @@ Base.metadata.create_all(bind=engine)
 def seed_db():
     db = SessionLocal()
     
+    # Auto-Migration Segura
+    from sqlalchemy import text
+    try:
+        db.execute(text("ALTER TABLE posts ADD COLUMN IF NOT EXISTS platform_log TEXT;"))
+        db.commit()
+    except Exception:
+        db.rollback()
+    
     # Crear Usuario Maestro
     admin_user = db.query(User).filter(User.email == "eddyngerardo@gmail.com").first()
     if not admin_user:

@@ -101,7 +101,7 @@ function StudioBoardContent() {
                     copy: editCopy, 
                     media_prompt: editPrompt, 
                     status: 'APPROVED',
-                    scheduled_for: new Date(editDate).toISOString()
+                    scheduled_for: editDate + ':00' // Sending ISO Local Time
                 })
             });
             setEditingPost(null);
