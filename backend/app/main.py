@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine, SessionLocal
 from app.models.base import Brand
-from app.api import auth, ai, brands
+from app.api import auth, ai, brands, social
 
 # Initialize DB tables
 Base.metadata.create_all(bind=engine)
@@ -53,6 +53,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"])
 app.include_router(brands.router, prefix="/api/brands", tags=["brands"])
+app.include_router(social.router, prefix="/api/social", tags=["social"])
 
 @app.get("/")
 def read_root():

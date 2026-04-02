@@ -13,6 +13,7 @@ export default function StudioBoard() {
     const [posts, setPosts] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
+    const [socialStatus, setSocialStatus] = useState<any>(null);
     
     // Configuración Generación Modal
     const [showGenerateSetup, setShowGenerateSetup] = useState(false);
@@ -40,6 +41,13 @@ export default function StudioBoard() {
             const res = await fetch(`http://localhost:8000/api/ai/posts/${brandId}`);
             const data = await res.json();
             setPosts(data);
+
+            // Cargar estado de redes
+            const socialRes = await fetch(`http://localhost:8000/api/social/status/${brandId}`);
+            if(socialRes.ok){
+                const sData = await socialRes.json();
+                setSocialStatus(sData);
+            }
         } catch (e) {
             console.error(e);
         }
@@ -218,6 +226,9 @@ export default function StudioBoard() {
                            <Link href={`/studio/settings?brandId=${brandId}`} style={{ marginLeft: '1rem', background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
                                ⚙️ Ajustar ADN de Marca
                            </Link>
+                           <a href={`http://localhost:8000/api/social/meta_login?brand_id=${brandId}`} style={{ marginLeft: '0.5rem', background: socialStatus?.connected ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: socialStatus?.connected ? '#2ecc71' : '#38bdf8', padding: '6px 12px', borderRadius: '8px', fontSize: '0.8rem', textDecoration: 'none', border: `1px solid ${socialStatus?.connected ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
+                               {socialStatus?.connected ? `✅ Meta Conectado (${socialStatus.total_accounts} accs)` : '🔗 Conectar con Meta / IG'}
+                           </a>
                         </div>
                     </div>
                     
