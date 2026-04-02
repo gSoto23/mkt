@@ -228,13 +228,20 @@ def dump_logs():
     import os
     import subprocess
     home_dir = os.path.expanduser("~")
-    log_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-out.log")
-    err_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-error.log")
+    # Intentar leer desde .pm2 o desde el wrapper local
+    log_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-celery-out.log")
+    
+    if not os.path.exists(log_file):
+        log_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-out.log")
+        
     res = {}
     if os.path.exists(log_file):
-        res["out"] = subprocess.check_output(["tail", "-n", "300", log_file]).decode("utf-8")
-    if os.path.exists(err_file):
-        res["err"] = subprocess.check_output(["tail", "-n", "300", err_file]).decode("utf-8")
+        try:
+            res["out"] = subprocess.check_output(["tail", "-n", "500", log_file]).decode("utf-8", errors="ignore")
+        except Exception as e:
+            res["error"] = str(e)
+    else:
+        res["error"] = "Log no encontrado"
     return res
 
 @router.get("/tiktok_login")
