@@ -176,7 +176,9 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
     logger.info(f"[MEDIA ENDPOINT] Meta solicitó el archivo: {filename}")
     
     try:
-        post_id = int(filename.split(".")[0])
+        base_name = filename.split(".")[0]
+        post_id_str = base_name.split("_")[0]
+        post_id = int(post_id_str)
     except ValueError:
         logger.error(f"[MEDIA ENDPOINT] Invalid filename format: {filename}")
         raise HTTPException(status_code=400, detail="Invalid filename format")

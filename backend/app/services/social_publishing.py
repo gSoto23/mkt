@@ -105,7 +105,7 @@ def publish_to_facebook(post: Post, account: SocialAccount):
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     backend_base = settings.BACKEND_URL.rstrip("/")
-    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}?cb={int(time.time())}"
+    media_url = f"{backend_base}/api/social/media/{post.id}_{int(time.time())}.{ext}"
     logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
     
     with httpx.Client() as client:
@@ -129,7 +129,7 @@ def publish_to_instagram(post: Post, account: SocialAccount):
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     backend_base = settings.BACKEND_URL.rstrip("/")
-    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}?cb={int(time.time())}"
+    media_url = f"{backend_base}/api/social/media/{post.id}_{int(time.time())}.{ext}"
     logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con URL {media_url}")
     
     caption = post.copy
