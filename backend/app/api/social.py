@@ -142,6 +142,12 @@ def check_status(brand_id: int, db: Session = Depends(get_db)):
         "total_accounts": len(accounts)
     }
 
+@router.get("/clear_meta/{brand_id}")
+def clear_meta(brand_id: int, db: Session = Depends(get_db)):
+    deleted = db.query(SocialAccount).filter(SocialAccount.brand_id == brand_id, SocialAccount.platform.in_(['facebook', 'instagram'])).delete()
+    db.commit()
+    return {"message": "Borradas", "deleted": deleted}
+
 @router.get("/debug_meta/{brand_id}")
 async def debug_meta(brand_id: int, db: Session = Depends(get_db)):
     acc = db.query(SocialAccount).filter(SocialAccount.brand_id == brand_id, SocialAccount.platform == 'facebook').first()
