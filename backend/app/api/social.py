@@ -183,19 +183,23 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
         logger.error(f"[MEDIA ENDPOINT] Invalid filename format: {filename}")
         raise HTTPException(status_code=400, detail="Invalid filename format")
 
-    post = db.query(Post).filter(Post.id == post_id).first()
-    if not post:
-        logger.error(f"[MEDIA ENDPOINT] Post {post_id} no encontrado en BD")
-        raise HTTPException(status_code=404, detail="Post not found")
+    if post_id == 999999:
+        logger.info("[MEDIA ENDPOINT] Sirviendo Imagen DUMMY de prueba")
+        dummy_jpeg = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA="
+        media_data = dummy_jpeg
+    else:    
+        post = db.query(Post).filter(Post.id == post_id).first()
+        if not post:
+            logger.error(f"[MEDIA ENDPOINT] Post {post_id} no encontrado en BD")
+            raise HTTPException(status_code=404, detail="Post not found")
         
-    # Extraer formato y base64 (ej: 'data:video/mp4;base64,AAAA...')
-    # Instagram necesita strict extension. Si pide .mp4 intentamos dar video.
-    if filename.endswith('.mp4') and post.video_url:
-        logger.info(f"[MEDIA ENDPOINT] Sirviendo Video para Post {post_id}")
-        media_data = post.video_url
-    else:
-        logger.info(f"[MEDIA ENDPOINT] Sirviendo Imagen para Post {post_id}")
-        media_data = post.image_url
+        # Extraer formato y base64
+        if filename.endswith('.mp4') and post.video_url:
+            logger.info(f"[MEDIA ENDPOINT] Sirviendo Video para Post {post_id}")
+            media_data = post.video_url
+        else:
+            logger.info(f"[MEDIA ENDPOINT] Sirviendo Imagen para Post {post_id}")
+            media_data = post.image_url
 
     if not media_data:
         logger.error(f"[MEDIA ENDPOINT] Post {post_id} sin media adjunto")
@@ -218,6 +222,20 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"[MEDIA ENDPOINT] Error crítico decodificando media: {e}")
         raise HTTPException(status_code=500, detail="Invalid media format in DB")
+
+@router.get("/dump_logs")
+def dump_logs():
+    import os
+    import subprocess
+    home_dir = os.path.expanduser("~")
+    log_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-out.log")
+    err_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-error.log")
+    res = {}
+    if os.path.exists(log_file):
+        res["out"] = subprocess.check_output(["tail", "-n", "300", log_file]).decode("utf-8")
+    if os.path.exists(err_file):
+        res["err"] = subprocess.check_output(["tail", "-n", "300", err_file]).decode("utf-8")
+    return res
 
 @router.get("/tiktok_login")
 def tiktok_login(brand_id: int):

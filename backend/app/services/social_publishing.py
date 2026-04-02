@@ -159,7 +159,7 @@ def publish_to_instagram(post: Post, account: SocialAccount):
         try:
             container_res = client.post(
                 url_media, 
-                params=container_params, 
+                data=container_params, 
                 timeout=60.0
             )
             container_res.raise_for_status()
@@ -184,7 +184,7 @@ def publish_to_instagram(post: Post, account: SocialAccount):
         url_publish = f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media_publish"
         publish_res = client.post(
             url_publish,
-            params={
+            data={
                 "creation_id": creation_id,
                 "access_token": account.access_token
             },
