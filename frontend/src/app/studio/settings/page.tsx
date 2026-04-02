@@ -109,6 +109,17 @@ function SettingsPageContent() {
         setSaving(false);
     };
 
+    const handleClearMeta = async () => {
+        if (!confirm('¿Estás seguro de que quieres eliminar la conexión actual de Meta? Tendrás que volver a conectarte para publicar.')) return;
+        try {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/clear_meta/${brandId}`);
+            if (res.ok) alert('Sesiones fantasma purgadas exitosamente. Ahora ve al dashboard y conéctate nuevamente a Meta.');
+        } catch (e) {
+            console.error(e);
+            alert('Error al purgar.');
+        }
+    };
+
     const togglePlatform = (p: string) => setPlatforms({...platforms, [p]: !(platforms as any)[p]});
 
     if (loading) return <div style={{padding:'4rem', textAlign:'center', color:'#fff'}}>Cargando ADN...</div>;
@@ -210,9 +221,14 @@ function SettingsPageContent() {
                     </div>
                 </div>
 
-                <button type="submit" disabled={saving} className="btn-primary" style={{ padding: '16px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', marginTop: '1rem', fontSize: '1.1rem' }}>
-                    {saving ? 'Guardando ADN...' : 'Guardar ADN de Marca'}
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', marginTop: '1rem' }}>
+                    <button type="submit" disabled={saving} className="btn-primary" style={{ flex: 1, padding: '16px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', fontSize: '1.1rem', borderRadius: '12px', border: 'none', color: 'white', fontWeight: 'bold', cursor: 'pointer' }}>
+                        {saving ? 'Guardando ADN...' : 'Guardar ADN de Marca'}
+                    </button>
+                    <button type="button" onClick={handleClearMeta} style={{ padding: '16px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', fontSize: '1rem', fontWeight: 'bold', cursor: 'pointer', transition: 'all 0.2s' }} onMouseOver={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseOut={e=>e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'}>
+                        🧹 Purgar Sesiones Meta
+                    </button>
+                </div>
 
             </form>
         </main>

@@ -207,6 +207,34 @@ function StudioBoardContent() {
         return new Intl.DateTimeFormat('es-CR', { timeZone: 'America/Costa_Rica', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(d);
     };
 
+    // UI Custom Calendar State
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    
+    // Helper to generate days
+    const currentEditDateObj = editDate ? new Date(editDate) : new Date();
+    const [calendarMonth, setCalendarMonth] = useState(currentEditDateObj.getMonth());
+    const [calendarYear, setCalendarYear] = useState(currentEditDateObj.getFullYear());
+
+    const daysInMonth = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+    const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+    
+    const handleDayClick = (day: number) => {
+        const d = new Date(editDate || new Date());
+        d.setFullYear(calendarYear);
+        d.setMonth(calendarMonth);
+        d.setDate(day);
+        const tzAdjusted = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+        setEditDate(tzAdjusted);
+    };
+
+    const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
+        const d = new Date(editDate || new Date());
+        if (type === 'hours') d.setHours(parseInt(value));
+        if (type === 'minutes') d.setMinutes(parseInt(value));
+        const tzAdjusted = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
+        setEditDate(tzAdjusted);
+    };
+
     return (
         <main className="studio-layout" style={{ display: 'flex', minHeight: '100vh', fontFamily: 'var(--font-inter)' }}>
             
@@ -420,14 +448,51 @@ function StudioBoardContent() {
                                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>Edición manual antes de encolar en auto-pilot.</p>
                                 </div>
                             </div>
-                            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 18px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                <span style={{fontSize: '1.2rem', opacity: 0.8}}>🗓</span>
-                                <input 
-                                    type="datetime-local" 
-                                    value={editDate} 
-                                    onChange={e => setEditDate(e.target.value)} 
-                                    style={{ background: 'transparent', border: 'none', color: '#e2e8f0', fontSize: '0.9rem', fontWeight: 500, letterSpacing: '0.5px', outline: 'none', cursor: 'pointer' }} 
-                                />
+                            <div style={{ position: 'relative' }}>
+                                <button onClick={() => setShowDatePicker(!showDatePicker)} style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 18px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '10px', color: '#e2e8f0', cursor: 'pointer', outline: 'none', fontWeight: 500 }}>
+                                    <span style={{fontSize: '1.2rem', opacity: 0.8}}>🗓</span>
+                                    {editDate ? formatDate(new Date(editDate).toISOString()) : 'Seleccionar Fecha'}
+                                </button>
+                                
+                                {showDatePicker && (
+                                    <div className="glass-card" style={{ position: 'absolute', top: '110%', right: 0, width: '320px', background: 'rgba(24, 24, 27, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', padding: '1.5rem', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', zIndex: 50 }}>
+                                        {/* Header Mes */}
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', color: '#fff' }}>
+                                            <button onClick={() => setCalendarMonth(prev => prev === 0 ? 11 : prev - 1)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.2rem' }}>‹</button>
+                                            <span style={{ fontWeight: 600 }}>{new Date(calendarYear, calendarMonth).toLocaleString('es', {month: 'long', year: 'numeric'}).toUpperCase()}</span>
+                                            <button onClick={() => setCalendarMonth(prev => prev === 11 ? 0 : prev + 1)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', fontSize: '1.2rem' }}>›</button>
+                                        </div>
+                                        
+                                        {/* Grid Dias */}
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '4px', textAlign: 'center', marginBottom: '1rem' }}>
+                                            {['Do','Lu','Ma','Mi','Ju','Vi','Sá'].map(day => <span key={day} style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{day}</span>)}
+                                            {Array.from({ length: firstDay }).map((_, i) => <div key={`empty-${i}`} />)}
+                                            {Array.from({ length: daysInMonth }).map((_, i) => {
+                                                const dayNum = i + 1;
+                                                const isSelected = editDate && new Date(editDate).getDate() === dayNum && new Date(editDate).getMonth() === calendarMonth && new Date(editDate).getFullYear() === calendarYear;
+                                                return (
+                                                    <button key={dayNum} onClick={() => handleDayClick(dayNum)} style={{ width: '100%', aspectRatio: '1/1', display: 'flex', alignItems: 'center', justifyContent: 'center', background: isSelected ? '#6366f1' : 'transparent', color: isSelected ? '#fff' : '#e2e8f0', border: 'none', borderRadius: '50%', cursor: 'pointer', fontSize: '0.9rem', fontWeight: isSelected ? 700 : 500, transition: 'all 0.2s' }} onMouseOver={e => !isSelected && (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')} onMouseOut={e => !isSelected && (e.currentTarget.style.background = 'transparent')}>
+                                                        {dayNum}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+
+                                        {/* Selector de Hora */}
+                                        <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '1rem', display: 'flex', justifyContent: 'center', gap: '10px', alignItems: 'center' }}>
+                                            <span style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Hora:</span>
+                                            <select value={editDate ? new Date(editDate).getHours().toString().padStart(2, '0') : '12'} onChange={e => handleTimeChange('hours', e.target.value)} style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 12px', borderRadius: '6px', outline: 'none' }}>
+                                                {Array.from({ length: 24 }).map((_, i) => <option key={i} value={i.toString()}>{i.toString().padStart(2, '0')}</option>)}
+                                            </select>
+                                            <span style={{ color: '#fff' }}>:</span>
+                                            <select value={editDate ? new Date(editDate).getMinutes().toString().padStart(2, '0') : '00'} onChange={e => handleTimeChange('minutes', e.target.value)} style={{ background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', padding: '6px 12px', borderRadius: '6px', outline: 'none' }}>
+                                                {Array.from({ length: 60 }).map((_, i) => <option key={i} value={i.toString()}>{i.toString().padStart(2, '0')}</option>)}
+                                            </select>
+                                        </div>
+                                        
+                                        <button onClick={() => setShowDatePicker(false)} style={{ width: '100%', marginTop: '1rem', padding: '10px', background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>Listo</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
                         
@@ -528,7 +593,7 @@ function StudioBoardContent() {
                                       <h4 style={{fontSize: '0.75rem', textTransform: 'uppercase', color: editingPost.status === 'FAILED' ? '#ef4444' : '#cbd5e1', letterSpacing: '1px', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px'}}>
                                           {editingPost.status === 'FAILED' ? '🚨' : '📃'} Bitácora del Servidor
                                       </h4>
-                                      <div style={{background: editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', border: `1px solid ${editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.05)'}`, color: editingPost.status === 'FAILED' ? '#fca5a5' : '#94a3b8', fontSize: '0.75rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', fontFamily: 'monospace'}}>
+                                      <div className="premium-scrollbar" style={{background: editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(0,0,0,0.3)', padding: '1rem', borderRadius: '8px', border: `1px solid ${editingPost.status === 'FAILED' ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255,255,255,0.05)'}`, color: editingPost.status === 'FAILED' ? '#fca5a5' : '#94a3b8', fontSize: '0.75rem', lineHeight: '1.5', whiteSpace: 'pre-wrap', wordBreak: 'break-all', overflowY: 'auto', overflowX: 'hidden', maxHeight: '180px', fontFamily: 'monospace'}}>
                                           {editingPost.platform_log}
                                       </div>
                                   </div>
