@@ -101,10 +101,11 @@ def publish_post_task(self, post_id: int):
         db.close()
 
 def publish_to_facebook(post: Post, account: SocialAccount):
+    import time
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     backend_base = settings.BACKEND_URL.rstrip("/")
-    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}"
+    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}?cb={int(time.time())}"
     logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
     
     with httpx.Client() as client:
@@ -124,10 +125,11 @@ def publish_to_facebook(post: Post, account: SocialAccount):
         res.raise_for_status()
 
 def publish_to_instagram(post: Post, account: SocialAccount):
+    import time
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     backend_base = settings.BACKEND_URL.rstrip("/")
-    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}"
+    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}?cb={int(time.time())}"
     logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con URL {media_url}")
     
     caption = post.copy
