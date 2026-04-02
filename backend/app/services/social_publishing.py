@@ -89,13 +89,10 @@ def publish_post_task(self, post_id: int):
         db.close()
 
 def publish_to_facebook(post: Post, account: SocialAccount):
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}"
-    logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
-    
-    if "localhost" in settings.BACKEND_URL or "127.0.0.1" in settings.BACKEND_URL:
-        logger.warning("ALERTA: Meta Graph API bloqueará las URLs que tengan 'localhost'. El Backend debe estar en un dominio publico o usar Ngrok para probar media_url.")
-        
     is_video = bool(post.video_url)
+    ext = "mp4" if is_video else "jpg"
+    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.{ext}"
+    logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
     
     with httpx.Client() as client:
         if is_video:
@@ -114,10 +111,11 @@ def publish_to_facebook(post: Post, account: SocialAccount):
         res.raise_for_status()
 
 def publish_to_instagram(post: Post, account: SocialAccount):
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}"
-    logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id}")
-    
     is_video = bool(post.video_url)
+    ext = "mp4" if is_video else "jpg"
+    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.{ext}"
+    logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con URL {media_url}")
+    
     caption = post.copy
     
     with httpx.Client() as client:
@@ -169,7 +167,7 @@ def publish_to_tiktok(post: Post, account: SocialAccount):
         logger.warning(f"TikTok rechazado para Post {post.id}: TikTok solo acepta videos en Content API.")
         return
         
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}"
+    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.mp4"
     
     with httpx.Client() as client:
         url = "https://open.tiktokapis.com/v2/post/publish/video/init/"

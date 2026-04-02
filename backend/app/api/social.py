@@ -165,21 +165,31 @@ async def debug_meta(brand_id: int, db: Session = Depends(get_db)):
         })
         return res.json()
 
-@router.get("/media/{post_id}")
-def serve_media(post_id: int, db: Session = Depends(get_db)):
+@router.get("/media/{filename}")
+def serve_media(filename: str, db: Session = Depends(get_db)):
     """
     Ruta pública necesaria para que los servidores de Meta (Graph API)
     puedan descargar el video/imagen Base64 como un archivo real de internet.
     """
+    try:
+        post_id = int(filename.split(".")[0])
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid filename format")
+
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
         
-    media_data = post.video_url if post.video_url else post.image_url
+    # Extraer formato y base64 (ej: 'data:video/mp4;base64,AAAA...')
+    # Instagram necesita strict extension. Si pide .mp4 intentamos dar video.
+    if filename.endswith('.mp4') and post.video_url:
+        media_data = post.video_url
+    else:
+        media_data = post.image_url
+
     if not media_data:
         raise HTTPException(status_code=404, detail="No media attached to post")
-        
-    # Extraer formato y base64 (ej: 'data:video/mp4;base64,AAAA...')
+
     try:
         header, encoded = media_data.split(",", 1)
         mime_type = header.split(":")[1].split(";")[0]
