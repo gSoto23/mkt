@@ -143,19 +143,34 @@ def publish_to_instagram(post: Post, account: SocialAccount):
             "access_token": account.access_token
         }
         
+        # Test Backdoor: Validar bloqueo de dominio vs bloqueo de imagen
+        if "[TEST]" in caption:
+            logger.info("[META API] MODO TEST: Usando URL de Unsplash segura para saltar nuestra BD")
+            media_url = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1080&auto=format&fit=crop"
+
         if is_video:
             container_params["media_type"] = "REELS"
             container_params["video_url"] = media_url
         else:
             container_params["image_url"] = media_url
             
-        container_res = client.post(
-            url_media, 
-            params=container_params, 
-            timeout=60.0
-        )
-        container_res.raise_for_status()
+        logger.info(f"[META API] Request a Insta API. URL enviada: {media_url}")
+        
+        try:
+            container_res = client.post(
+                url_media, 
+                params=container_params, 
+                timeout=60.0
+            )
+            container_res.raise_for_status()
+        except httpx.HTTPStatusError as e:
+            logger.error(f"[META API] Container Error Response: {e.response.text}")
+            raise e
+            
         creation_id = container_res.json().get("id")
+        if not creation_id:
+            logger.error(f"[META API] Container Creation Failed, no ID returned: {container_res.json()}")
+            return
         
         # Ojo: IG procesa videos de forma asíncrona, en un código hiper-robusto 
         # haríamos un loop preguntando el 'status_code' del media. 

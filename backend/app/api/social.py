@@ -205,6 +205,10 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
         header, encoded = media_data.split(",", 1)
         mime_type = header.split(":")[1].split(";")[0]
         binary_data = base64.b64decode(encoded)
+        
+        if mime_type != "image/jpeg" and filename.endswith(".jpg"):
+            logger.error(f"[MEDIA ENDPOINT] ALERTA: Archivo pedido como .jpg pero el verdadero tipo es {mime_type}. (Instagram puede bloquearlo)")
+            
         logger.info(f"[MEDIA ENDPOINT] Exito decodificando Base64. Devolviendo Mime: {mime_type}, Bytes: {len(binary_data)}")
         headers = {
             "Content-Length": str(len(binary_data)),
