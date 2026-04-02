@@ -80,10 +80,20 @@ body {
   }
 
   main {
+    padding: 1rem !important;
     box-sizing: border-box !important;
+    width: 100vw !important;
   }
 
-  /* Modals y Botones */
+  /* Reducción de textos en móvil */
+  h1 { font-size: 2rem !important; }
+  h2 { font-size: 1.5rem !important; }
+
+  /* Adaptación de grids a móviles para que jamás desborden */
+  [style*="minmax("] {
+    grid-template-columns: 1fr !important;
+  }
+
   .generate-modal-content {
     width: 95vw !important;
     max-height: 95vh !important;
