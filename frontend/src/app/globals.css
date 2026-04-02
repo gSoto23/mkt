@@ -79,10 +79,25 @@ body {
     box-sizing: border-box !important;
   }
 
+  body {
+    overflow-x: hidden !important;
+  }
+
   main {
-    padding: 1rem !important;
+    padding: 1.5rem !important;
     box-sizing: border-box !important;
     width: 100vw !important;
+  }
+
+  .studio-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .studio-layout section {
+    padding: 1.5rem 0 !important;
   }
 
   /* Reducción de textos en móvil */
@@ -131,7 +146,9 @@ body {
   font-size: 3rem;
   font-weight: 800;
   background: linear-gradient(to right, #fff, #a5b4fc);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   margin-bottom: 1rem;
 }

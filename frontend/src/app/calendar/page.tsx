@@ -66,7 +66,7 @@ export default function GlobalCalendar() {
     return (
         <main style={{ padding: '2rem', maxWidth: '1600px', margin: '0 auto', fontFamily: 'var(--font-inter)' }}>
             {/* Header Global */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1.5rem' }}>
                 <Link href="/" style={{ color: '#a1a1aa', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>← Volver al Dashboard</Link>
                 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -103,80 +103,82 @@ export default function GlobalCalendar() {
             </div>
 
             {/* Calendar Grid Box */}
-            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '0 0 16px 16px', border: '1px solid rgba(255,255,255,0.1)', overflow: 'hidden' }}>
-                {/* Weekdays Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                    {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map(d => (
-                        <div key={d} style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{d}</div>
-                    ))}
-                </div>
-                
-                {/* Days Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: 'minmax(140px, auto)' }}>
-                    {totalSlots.map((day, idx) => {
-                        const isToday = day && year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
-                        const dayPosts = day ? getPostsForDay(day) : [];
-                        
-                        return (
-                            <div key={idx} style={{ 
-                                padding: '0.5rem', 
-                                borderRight: '1px solid rgba(255,255,255,0.05)', 
-                                borderBottom: '1px solid rgba(255,255,255,0.05)',
-                                background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
-                                minHeight: '140px'
-                            }}>
-                                {day && (
-                                    <>
-                                        <div style={{ textAlign: 'right', marginBottom: '0.5rem' }}>
-                                            <span style={{ 
-                                                display: 'inline-block', width: '28px', height: '28px', lineHeight: '28px', textAlign: 'center', borderRadius: '50%',
-                                                background: isToday ? '#6366f1' : 'transparent', 
-                                                color: isToday ? '#fff' : '#64748b', 
-                                                fontWeight: isToday ? 700 : 500, fontSize: '0.9rem' 
-                                            }}>
-                                                {day}
-                                            </span>
-                                        </div>
-                                        
-                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                            {dayPosts.map((p, pIdx) => {
-                                                const bColor = p.brand_colors && p.brand_colors.length > 0 ? p.brand_colors[0] : '#6366f1';
-                                                
-                                                return (
-                                                    <div key={p.id} onClick={() => setSelectedPost(p)} style={{
-                                                        background: 'rgba(255,255,255,0.03)',
-                                                        border: `1px solid rgba(255,255,255,0.08)`,
-                                                        borderLeft: `4px solid ${bColor}`,
-                                                        borderRadius: '6px',
-                                                        padding: '6px 8px',
-                                                        cursor: 'pointer',
-                                                        transition: 'all 0.2s',
-                                                        display: 'flex',
-                                                        flexDirection: 'column',
-                                                        gap: '4px'
-                                                    }}
-                                                    onMouseOver={e=> {e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.transform='translateY(-2px)'}}
-                                                    onMouseOut={e=> {e.currentTarget.style.background='rgba(255,255,255,0.03)'; e.currentTarget.style.transform='translateY(0)'}}
-                                                    >
-                                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                                            <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-                                                                <span style={{fontSize: '0.8rem'}}>{getPlatformIcon(p.platform)}</span>
-                                                                <span style={{fontSize:'0.7rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80px'}}>{p.brand_name}</span>
+            <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '0 0 16px 16px', border: '1px solid rgba(255,255,255,0.1)', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                <div style={{ minWidth: '800px' }}>
+                    {/* Weekdays Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+                        {['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'].map(d => (
+                            <div key={d} style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.8rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>{d}</div>
+                        ))}
+                    </div>
+                    
+                    {/* Days Grid */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gridAutoRows: 'minmax(140px, auto)' }}>
+                        {totalSlots.map((day, idx) => {
+                            const isToday = day && year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+                            const dayPosts = day ? getPostsForDay(day) : [];
+                            
+                            return (
+                                <div key={idx} style={{ 
+                                    padding: '0.5rem', 
+                                    borderRight: '1px solid rgba(255,255,255,0.05)', 
+                                    borderBottom: '1px solid rgba(255,255,255,0.05)',
+                                    background: isToday ? 'rgba(99, 102, 241, 0.05)' : 'transparent',
+                                    minHeight: '140px'
+                                }}>
+                                    {day && (
+                                        <>
+                                            <div style={{ textAlign: 'right', marginBottom: '0.5rem' }}>
+                                                <span style={{ 
+                                                    display: 'inline-block', width: '28px', height: '28px', lineHeight: '28px', textAlign: 'center', borderRadius: '50%',
+                                                    background: isToday ? '#6366f1' : 'transparent', 
+                                                    color: isToday ? '#fff' : '#64748b', 
+                                                    fontWeight: isToday ? 700 : 500, fontSize: '0.9rem' 
+                                                }}>
+                                                    {day}
+                                                </span>
+                                            </div>
+                                            
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                                {dayPosts.map((p, pIdx) => {
+                                                    const bColor = p.brand_colors && p.brand_colors.length > 0 ? p.brand_colors[0] : '#6366f1';
+                                                    
+                                                    return (
+                                                        <div key={p.id} onClick={() => setSelectedPost(p)} style={{
+                                                            background: 'rgba(255,255,255,0.03)',
+                                                            border: `1px solid rgba(255,255,255,0.08)`,
+                                                            borderLeft: `4px solid ${bColor}`,
+                                                            borderRadius: '6px',
+                                                            padding: '6px 8px',
+                                                            cursor: 'pointer',
+                                                            transition: 'all 0.2s',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '4px'
+                                                        }}
+                                                        onMouseOver={e=> {e.currentTarget.style.background='rgba(255,255,255,0.08)'; e.currentTarget.style.transform='translateY(-2px)'}}
+                                                        onMouseOut={e=> {e.currentTarget.style.background='rgba(255,255,255,0.03)'; e.currentTarget.style.transform='translateY(0)'}}
+                                                        >
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                                <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                                                                    <span style={{fontSize: '0.8rem'}}>{getPlatformIcon(p.platform)}</span>
+                                                                    <span style={{fontSize:'0.7rem', fontWeight: 600, color: '#e2e8f0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '80px'}}>{p.brand_name}</span>
+                                                                </div>
+                                                                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'APPROVED' ? '#2ecc71' : '#f59e0b', boxShadow: p.status === 'APPROVED' ? '0 0 5px #2ecc71' : 'none' }}></div>
                                                             </div>
-                                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: p.status === 'APPROVED' ? '#2ecc71' : '#f59e0b', boxShadow: p.status === 'APPROVED' ? '0 0 5px #2ecc71' : 'none' }}></div>
+                                                            <span style={{fontSize: '0.7rem', color: '#94a3b8'}}>
+                                                                {new Intl.DateTimeFormat('es-CR', { timeZone: 'America/Costa_Rica', hour: '2-digit', minute: '2-digit' }).format(new Date(p.scheduled_for))}
+                                                            </span>
                                                         </div>
-                                                        <span style={{fontSize: '0.7rem', color: '#94a3b8'}}>
-                                                            {new Intl.DateTimeFormat('es-CR', { timeZone: 'America/Costa_Rica', hour: '2-digit', minute: '2-digit' }).format(new Date(p.scheduled_for))}
-                                                        </span>
-                                                    </div>
-                                                )
-                                            })}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        )
-                    })}
+                                                    )
+                                                })}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
                 </div>
             </div>
 

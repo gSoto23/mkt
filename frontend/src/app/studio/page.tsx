@@ -233,7 +233,7 @@ function StudioBoardContent() {
                     </div>
                 </div>
 
-                <div style={{ marginTop: 'auto' }}>
+                <div style={{ marginTop: '2rem' }}>
                     <button 
                         onClick={handleOpenGenerateSetup} 
                         disabled={generating || loading}
@@ -282,7 +282,7 @@ function StudioBoardContent() {
                 )}
 
                 {/* Header de Parrilla con Filtros */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem', marginTop: '1.5rem' }}>
                     <h2 style={{ fontSize: '1.5rem', margin: 0 }}>Calendario de Aprobación</h2>
                     <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '12px', padding: '4px', border: '1px solid rgba(255,255,255,0.05)' }}>
                         <button onClick={() => setStatusFilter('PENDING_APPROVAL')} style={{ padding: '8px 20px', background: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.15)' : 'transparent', color: statusFilter === 'PENDING_APPROVAL' ? '#fbbf24' : '#a1a1aa', border: '1px solid', borderColor: statusFilter === 'PENDING_APPROVAL' ? 'rgba(245, 158, 11, 0.3)' : 'transparent', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>Pendientes</button>
