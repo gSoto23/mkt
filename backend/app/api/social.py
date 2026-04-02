@@ -171,31 +171,46 @@ def serve_media(filename: str, db: Session = Depends(get_db)):
     Ruta pública necesaria para que los servidores de Meta (Graph API)
     puedan descargar el video/imagen Base64 como un archivo real de internet.
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(f"[MEDIA ENDPOINT] Meta solicitó el archivo: {filename}")
+    
     try:
         post_id = int(filename.split(".")[0])
     except ValueError:
+        logger.error(f"[MEDIA ENDPOINT] Invalid filename format: {filename}")
         raise HTTPException(status_code=400, detail="Invalid filename format")
 
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
+        logger.error(f"[MEDIA ENDPOINT] Post {post_id} no encontrado en BD")
         raise HTTPException(status_code=404, detail="Post not found")
         
     # Extraer formato y base64 (ej: 'data:video/mp4;base64,AAAA...')
     # Instagram necesita strict extension. Si pide .mp4 intentamos dar video.
     if filename.endswith('.mp4') and post.video_url:
+        logger.info(f"[MEDIA ENDPOINT] Sirviendo Video para Post {post_id}")
         media_data = post.video_url
     else:
+        logger.info(f"[MEDIA ENDPOINT] Sirviendo Imagen para Post {post_id}")
         media_data = post.image_url
 
     if not media_data:
+        logger.error(f"[MEDIA ENDPOINT] Post {post_id} sin media adjunto")
         raise HTTPException(status_code=404, detail="No media attached to post")
 
     try:
         header, encoded = media_data.split(",", 1)
         mime_type = header.split(":")[1].split(";")[0]
         binary_data = base64.b64decode(encoded)
-        return Response(content=binary_data, media_type=mime_type)
+        logger.info(f"[MEDIA ENDPOINT] Exito decodificando Base64. Devolviendo Mime: {mime_type}, Bytes: {len(binary_data)}")
+        headers = {
+            "Content-Length": str(len(binary_data)),
+            "Content-Disposition": f'inline; filename="{filename}"'
+        }
+        return Response(content=binary_data, media_type=mime_type, headers=headers)
     except Exception as e:
+        logger.error(f"[MEDIA ENDPOINT] Error crítico decodificando media: {e}")
         raise HTTPException(status_code=500, detail="Invalid media format in DB")
 
 @router.get("/tiktok_login")

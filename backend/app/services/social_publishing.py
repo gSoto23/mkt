@@ -103,7 +103,8 @@ def publish_post_task(self, post_id: int):
 def publish_to_facebook(post: Post, account: SocialAccount):
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.{ext}"
+    backend_base = settings.BACKEND_URL.rstrip("/")
+    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}"
     logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
     
     with httpx.Client() as client:
@@ -125,7 +126,8 @@ def publish_to_facebook(post: Post, account: SocialAccount):
 def publish_to_instagram(post: Post, account: SocialAccount):
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.{ext}"
+    backend_base = settings.BACKEND_URL.rstrip("/")
+    media_url = f"{backend_base}/api/social/media/{post.id}.{ext}"
     logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con URL {media_url}")
     
     caption = post.copy
@@ -179,7 +181,8 @@ def publish_to_tiktok(post: Post, account: SocialAccount):
         logger.warning(f"TikTok rechazado para Post {post.id}: TikTok solo acepta videos en Content API.")
         return
         
-    media_url = f"{settings.BACKEND_URL}/api/social/media/{post.id}.mp4"
+    backend_base = settings.BACKEND_URL.rstrip("/")
+    media_url = f"{backend_base}/api/social/media/{post.id}.mp4"
     
     with httpx.Client() as client:
         url = "https://open.tiktokapis.com/v2/post/publish/video/init/"
