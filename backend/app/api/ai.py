@@ -94,13 +94,14 @@ def get_pending_posts(brand_id: int, db: Session = Depends(get_db)):
     posts = db.query(Post).filter(Post.brand_id == brand_id).order_by(Post.scheduled_for.asc()).all()
     results = []
     for p in posts:
+        b_url = settings.BACKEND_URL.rstrip('/')
         results.append({
             "id": p.id,
             "brand_id": p.brand_id,
             "platform": p.platform,
             "copy": p.copy,
-            "image_url": p.image_url,
-            "video_url": p.video_url,
+            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
+            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
             "media_prompt": p.media_prompt,
             "status": p.status,
             "platform_log": p.platform_log,
@@ -122,6 +123,7 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
         if p.brand and p.brand.visual_identity and isinstance(p.brand.visual_identity, dict):
             brand_colors = p.brand.visual_identity.get("colors", [])
             
+        b_url = settings.BACKEND_URL.rstrip('/')
         results.append({
             "id": p.id,
             "brand_id": p.brand_id,
@@ -129,8 +131,8 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
             "brand_colors": brand_colors,
             "platform": p.platform,
             "copy": p.copy,
-            "image_url": p.image_url,
-            "video_url": p.video_url,
+            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
+            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
             "media_prompt": p.media_prompt,
             "status": p.status,
             "platform_log": p.platform_log,
