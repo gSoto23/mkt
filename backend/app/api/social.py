@@ -258,11 +258,28 @@ def dump_logs():
     res = {}
     if os.path.exists(log_file):
         try:
-            res["out"] = subprocess.check_output(["tail", "-n", "500", log_file]).decode("utf-8", errors="ignore")
+            res["out"] = subprocess.check_output(["tail", "-n", "100", log_file]).decode("utf-8", errors="ignore")
         except Exception as e:
             res["error"] = str(e)
-    else:
-        res["error"] = "Log no encontrado"
+            
+    err_file = os.path.join(home_dir, ".pm2", "logs", "gmkt-backend-error.log")
+    if os.path.exists(err_file):
+        res["backend_err"] = subprocess.check_output(["tail", "-n", "100", err_file]).decode("utf-8", errors="ignore")
+        
+    # Añadir los ultimos 3 post IDs para depurar remotamente
+    try:
+        from app.db.database import SessionLocal
+        from app.models.base import Post
+        db = SessionLocal()
+        posts = db.query(Post).order_by(Post.id.desc()).limit(3).all()
+        res["latest_posts"] = [
+            f"ID: {p.id}, has_img: {bool(p.image_url)}, has_vid: {bool(p.video_url)}"
+            for p in posts
+        ]
+        db.close()
+    except Exception as e:
+        res["db_err"] = str(e)
+        
     return res
 
 @router.get("/tiktok_login")
