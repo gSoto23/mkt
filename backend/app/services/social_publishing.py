@@ -100,6 +100,47 @@ def publish_post_task(self, post_id: int):
     finally:
         db.close()
 
+def _push_media_to_edge_cdn(post: Post) -> str:
+    """
+    Subida dinámica del contenido Base64/Pillow a un alojamiento de alta confianza global.
+    Esto puentea por completo los Firewalls WAF (Domain Banning) caprichosos de Meta.
+    """
+    import base64
+    import io
+    import time
+    import requests
+    
+    is_video = bool(post.video_url)
+    ext = "mp4" if is_video else "jpg"
+    
+    if not is_video:
+        from PIL import Image
+        header, encoded = post.image_url.split(",", 1)
+        binary_src = base64.b64decode(encoded)
+        img = Image.open(io.BytesIO(binary_src))
+        if img.mode != "RGB":
+            img = img.convert("RGB")
+        clean_io = io.BytesIO()
+        img.save(clean_io, format="JPEG", quality=92, optimize=False)
+        binary_data = clean_io.getvalue()
+    else:
+        header, encoded = post.video_url.split(",", 1)
+        binary_data = base64.b64decode(encoded)
+
+    filename = f"gen_ig_media_{post.id}_{int(time.time())}.{ext}"
+    logger.info(f"[CDN PROXY] Subiendo al CDN perimetral... ({len(binary_data)} bytes)")
+    
+    res = requests.post(
+        "https://tmpfiles.org/api/v1/upload",
+        files={"file": (filename, binary_data)}
+    )
+    res.raise_for_status()
+    raw_url = res.json()["data"]["url"]
+    safe_url = raw_url.replace("http://", "https://").replace("tmpfiles.org/", "tmpfiles.org/dl/")
+    
+    logger.info(f"[CDN PROXY] URL de Bypaseo Oficial obtenida: {safe_url}")
+    return safe_url
+
 def publish_to_facebook(post: Post, account: SocialAccount):
     import time
     is_video = bool(post.video_url)
@@ -125,12 +166,11 @@ def publish_to_facebook(post: Post, account: SocialAccount):
         res.raise_for_status()
 
 def publish_to_instagram(post: Post, account: SocialAccount):
-    import time
     is_video = bool(post.video_url)
-    ext = "mp4" if is_video else "jpg"
-    backend_base = settings.BACKEND_URL.rstrip("/")
-    media_url = f"{backend_base}/api/social/media/{post.id}_{int(time.time())}.{ext}"
-    logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con URL {media_url}")
+    
+    # Bypass Architecture
+    media_url = _push_media_to_edge_cdn(post)
+    logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con PROXY URL {media_url}")
     
     caption = post.copy
     
@@ -152,12 +192,9 @@ def publish_to_instagram(post: Post, account: SocialAccount):
             container_params["media_type"] = "REELS"
             container_params["video_url"] = media_url
         else:
-            # Enmascaramos la URL cruda de nuestra app con el CDN confiable WSRV para evadir filtros de IPs residenciales de Instagram WAF
-            if not "[TEST]" in caption:
-                media_url = f"https://wsrv.nl/?url={media_url.replace('https://', '')}"
             container_params["image_url"] = media_url
             
-        logger.info(f"[META API] Request a Insta API. URL enviada: {media_url}")
+        logger.info(f"[META API] Request a Insta API. URL enviada al Container: {media_url}")
         
         try:
             container_res = client.post(
