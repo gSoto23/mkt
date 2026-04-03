@@ -157,12 +157,12 @@ def publish_to_instagram(post: Post, account: SocialAccount):
                 media_url = f"https://wsrv.nl/?url={media_url.replace('https://', '')}"
             container_params["image_url"] = media_url
             
-        logger.info(f"[META API] Request a Insta API (JSON). URL enviada: {media_url}")
+        logger.info(f"[META API] Request a Insta API. URL enviada: {media_url}")
         
         try:
             container_res = client.post(
                 url_media, 
-                json=container_params, 
+                data=container_params, 
                 timeout=60.0
             )
             container_res.raise_for_status()
