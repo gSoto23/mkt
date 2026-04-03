@@ -177,22 +177,12 @@ sudo certbot --nginx -d juguetessinazucar.com -d www.juguetessinazucar.com
 
 ## 🚀 FASE 6: Re-Deploy del Olympo (Mantenimiento de Software)
 
-Cuando agreguemos lógicas nuevas de Redes a tu compu y necesites actualizar Lightsail:
+Cuando agreguemos lógicas nuevas a tu computadora y necesites actualizar el servidor AWS, creamos un script maestro que hace todo por ti automáticamente:
 
 ```bash
 cd mkt
-git pull origin main
+chmod +x deploy.sh
+./deploy.sh
 ```
 
-**Si fue código de Python (Reglas de Automotización o API):**
-```bash
-pm2 restart gmkt-backend
-pm2 restart gmkt-celery
-```
-
-**Si fue algo visual o de experiencia UI (Next.js):**
-```bash
-cd frontend
-npm run build
-pm2 restart gmkt-frontend
-```
+El script buscará los cambios en GitHub, actualizará las dependencias de Python y Node, compilará la Interfaz si hubo cambios y reiniciará todos los servicios de PM2 de forma segura.
