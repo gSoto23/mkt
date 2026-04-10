@@ -252,6 +252,11 @@ export default function GlobalCalendar() {
                              <Link href={`/studio?brandId=${selectedPost.brand_id}`} style={{ padding: '10px 24px', background: '#e2e8f0', color: '#0f172a', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}>
                                  Saltar al Workspace ↗
                              </Link>
+                             {selectedPost.status === 'PUBLISHED' && (
+                                 <Link href={`/ads?boostPostId=${selectedPost.id}`} style={{ padding: '10px 24px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', boxShadow: '0 4px 15px rgba(16, 185, 129, 0.4)' }}>
+                                     Promocionar 🚀
+                                 </Link>
+                             )}
                          </div>
                      </div>
                 </div>

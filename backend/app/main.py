@@ -1,9 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.db.database import Base, engine, SessionLocal
-from app.db.database import Base, engine, SessionLocal
 from app.models.base import Brand, User
-from app.api import auth, ai, brands, social
+from app.api import auth, ai, brands, social, ads, metrics
 from app.core.config import settings
 from app.core.security import get_password_hash, get_current_user
 from fastapi import Depends
@@ -66,6 +65,8 @@ app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(ai.router, prefix="/api/ai", tags=["ai"], dependencies=[Depends(get_current_user)])
 app.include_router(brands.router, prefix="/api/brands", tags=["brands"], dependencies=[Depends(get_current_user)])
 app.include_router(social.router, prefix="/api/social", tags=["social"])
+app.include_router(ads.router, prefix="/api/ads", tags=["ads"], dependencies=[Depends(get_current_user)])
+app.include_router(metrics.router, prefix="/api/metrics", tags=["metrics"])
 
 @app.get("/")
 def read_root():

@@ -100,22 +100,20 @@ def publish_post_task(self, post_id: int):
     finally:
         db.close()
 
-def _push_media_to_edge_cdn(post: Post) -> str:
-    """
-    Subida dinámica del contenido Base64/Pillow a un alojamiento de alta confianza global.
-    Esto puentea por completo los Firewalls WAF (Domain Banning) caprichosos de Meta.
-    """
+def _push_base64_to_edge_cdn(base64_str: str, is_video: bool, item_id: str) -> str:
     import base64
     import io
     import time
     import requests
     
-    is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     
     if not is_video:
         from PIL import Image
-        header, encoded = post.image_url.split(",", 1)
+        if "," in base64_str:
+            header, encoded = base64_str.split(",", 1)
+        else:
+            encoded = base64_str
         binary_src = base64.b64decode(encoded)
         img = Image.open(io.BytesIO(binary_src))
         if img.mode != "RGB":
@@ -124,10 +122,13 @@ def _push_media_to_edge_cdn(post: Post) -> str:
         img.save(clean_io, format="JPEG", quality=92, optimize=False)
         binary_data = clean_io.getvalue()
     else:
-        header, encoded = post.video_url.split(",", 1)
+        if "," in base64_str:
+            header, encoded = base64_str.split(",", 1)
+        else:
+            encoded = base64_str
         binary_data = base64.b64decode(encoded)
 
-    filename = f"gen_ig_media_{post.id}_{int(time.time())}.{ext}"
+    filename = f"gen_media_{item_id}_{int(time.time()*1000)}.{ext}"
     logger.info(f"[CDN PROXY] Subiendo al CDN perimetral... ({len(binary_data)} bytes)")
     
     res = requests.post(
@@ -141,15 +142,68 @@ def _push_media_to_edge_cdn(post: Post) -> str:
     logger.info(f"[CDN PROXY] URL de Bypaseo Oficial obtenida: {safe_url}")
     return safe_url
 
+def _push_media_to_edge_cdn(post: Post) -> str:
+    """
+    Subida dinámica del contenido Base64/Pillow a un alojamiento de alta confianza global.
+    Esto puentea por completo los Firewalls WAF (Domain Banning) caprichosos de Meta.
+    """
+    is_video = bool(post.video_url)
+    source_b64 = post.video_url if is_video else post.image_url
+    return _push_base64_to_edge_cdn(source_b64, is_video, str(post.id))
+
 def publish_to_facebook(post: Post, account: SocialAccount):
     import time
+    media_type = getattr(post, "media_type", "IMAGE")
     is_video = bool(post.video_url)
     ext = "mp4" if is_video else "jpg"
     backend_base = settings.BACKEND_URL.rstrip("/")
     media_url = f"{backend_base}/api/social/media/{post.id}_{int(time.time())}.{ext}"
-    logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con URL {media_url}")
+    logger.info(f"[META API] Iniciando request a FB Page {account.provider_account_id} con media_type {media_type}")
     
     with httpx.Client() as client:
+        if media_type == "CAROUSEL" and post.media_urls:
+            # Facebook mergea secuencialmente si no mandas link attachment, fallback a post de álbum
+            for idx, m_b64 in enumerate(post.media_urls):
+                is_vid = m_b64.startswith("data:video")
+                cdn_url = _push_base64_to_edge_cdn(m_b64, is_vid, f"{post.id}_{idx}")
+                if is_vid:
+                    res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/videos", data={
+                        "file_url": cdn_url,
+                        "description": post.copy if idx == 0 else "",
+                        "access_token": account.access_token
+                    }, timeout=60.0)
+                else:
+                    res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/photos", data={
+                        "url": cdn_url,
+                        "message": post.copy if idx == 0 else "",
+                        "access_token": account.access_token
+                    }, timeout=60.0)
+                res.raise_for_status()
+            return
+
+        if media_type in ["STORY", "REEL"]:
+            proxy_url = _push_media_to_edge_cdn(post)
+            if media_type == "STORY":
+                if is_video:
+                    res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/video_stories", data={
+                        "video_url": proxy_url,
+                        "access_token": account.access_token
+                    }, timeout=60.0)
+                else:
+                    res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/photo_stories", data={
+                        "url": proxy_url,
+                        "access_token": account.access_token
+                    }, timeout=60.0)
+            elif media_type == "REEL":
+                # La API nativa de FB Reels requiere Inicializacion, usamos el bypass nativo o fallback a video normal:
+                res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/video_reels", data={
+                    "video_url": proxy_url,
+                    "description": post.copy,
+                    "access_token": account.access_token
+                }, timeout=60.0)
+            res.raise_for_status()
+            return
+
         if is_video:
             res = client.post(f"https://graph.facebook.com/v19.0/{account.provider_account_id}/videos", data={
                 "file_url": media_url,
@@ -166,50 +220,91 @@ def publish_to_facebook(post: Post, account: SocialAccount):
         res.raise_for_status()
 
 def publish_to_instagram(post: Post, account: SocialAccount):
-    is_video = bool(post.video_url)
-    
-    # Bypass Architecture
-    media_url = _push_media_to_edge_cdn(post)
-    logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con PROXY URL {media_url}")
-    
+    media_type = getattr(post, "media_type", "IMAGE")
     caption = post.copy
     
     with httpx.Client() as client:
-        # Paso 1: Crear Contenedor de Media (Instagram REQUIERE params en la URL, no en el Body)
         url_media = f"https://graph.facebook.com/v19.0/{account.provider_account_id}/media"
-        
-        container_params = {
-            "caption": caption,
-            "access_token": account.access_token
-        }
         
         # Test Backdoor: Validar bloqueo de dominio vs bloqueo de imagen
         if "[TEST]" in caption:
             logger.info("[META API] MODO TEST: Usando URL de Unsplash segura para saltar nuestra BD")
-            media_url = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1080&auto=format&fit=crop"
-
-        if is_video:
-            container_params["media_type"] = "REELS"
-            container_params["video_url"] = media_url
-        else:
-            container_params["image_url"] = media_url
+            test_url = "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1080&auto=format&fit=crop"
+            if media_type == "IMAGE":
+                post.image_url = f"data:image/jpeg;base64,...(test)..." # Mock
             
-        logger.info(f"[META API] Request a Insta API. URL enviada al Container: {media_url}")
-        
-        try:
-            container_res = client.post(
-                url_media, 
-                data=container_params, 
-                timeout=60.0
-            )
+        if media_type == "CAROUSEL" and post.media_urls:
+            children_ids = []
+            for idx, media_b64 in enumerate(post.media_urls):
+                is_vid = media_b64.startswith("data:video")
+                cdn_url = _push_base64_to_edge_cdn(media_b64, is_vid, f"{post.id}_{idx}") if "[TEST]" not in caption else test_url
+                
+                item_params = {
+                    "image_url": cdn_url if not is_vid else None,
+                    "video_url": cdn_url if is_vid else None,
+                    "is_carousel_item": "true",
+                    "access_token": account.access_token
+                }
+                if is_vid:
+                    item_params["media_type"] = "VIDEO"
+                    
+                item_params = {k: v for k, v in item_params.items() if v is not None}
+                
+                res_item = client.post(url_media, data=item_params, timeout=60.0)
+                res_item.raise_for_status()
+                children_ids.append(res_item.json().get("id"))
+                
+            container_params = {
+                "caption": caption,
+                "media_type": "CAROUSEL",
+                "children": ",".join(children_ids),
+                "access_token": account.access_token
+            }
+            container_res = client.post(url_media, data=container_params, timeout=60.0)
             container_res.raise_for_status()
-        except httpx.HTTPStatusError as e:
-            logger.error(f"[META API] Container Error Response: {e.response.text}")
-            raise e
+            creation_id = container_res.json().get("id")
+            is_video = False # Para el delay de retry
+
+        else:
+            is_video = bool(post.video_url) or media_type in ["VIDEO", "REEL"]
+            # Bypass Architecture
+            media_url = _push_media_to_edge_cdn(post) if "[TEST]" not in caption else test_url
+            logger.info(f"[META API] Iniciando request a Instagram {account.provider_account_id} con PROXY URL {media_url}")
             
-        creation_id = container_res.json().get("id")
+            container_params = {
+                "caption": caption,
+                "access_token": account.access_token
+            }
+
+            if media_type == "STORY":
+                container_params["media_type"] = "STORIES"
+                if is_video:
+                    container_params["video_url"] = media_url
+                else:
+                    container_params["image_url"] = media_url
+            elif is_video or media_type == "REEL":
+                container_params["media_type"] = "REELS"
+                container_params["video_url"] = media_url
+            else:
+                container_params["image_url"] = media_url
+                
+            logger.info(f"[META API] Request a Insta API. URL enviada al Container: {media_url}")
+            
+            try:
+                container_res = client.post(
+                    url_media, 
+                    data=container_params, 
+                    timeout=60.0
+                )
+                container_res.raise_for_status()
+            except httpx.HTTPStatusError as e:
+                logger.error(f"[META API] Container Error Response: {e.response.text}")
+                raise e
+                
+            creation_id = container_res.json().get("id")
+
         if not creation_id:
-            logger.error(f"[META API] Container Creation Failed, no ID returned: {container_res.json()}")
+            logger.error(f"[META API] Container Creation Failed, no ID returned")
             return
         
         # Ojo: IG procesa videos (Reels) e imágenes de forma asíncrona.

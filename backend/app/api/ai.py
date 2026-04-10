@@ -102,6 +102,8 @@ def get_pending_posts(brand_id: int, db: Session = Depends(get_db)):
             "copy": p.copy,
             "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
             "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
+            "media_type": p.media_type,
+            "media_urls": p.media_urls,
             "media_prompt": p.media_prompt,
             "status": p.status,
             "platform_log": p.platform_log,
@@ -133,6 +135,8 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
             "copy": p.copy,
             "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
             "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
+            "media_type": p.media_type,
+            "media_urls": p.media_urls,
             "media_prompt": p.media_prompt,
             "status": p.status,
             "platform_log": p.platform_log,
@@ -146,6 +150,8 @@ class PostUpdateRequest(BaseModel):
     media_prompt: str
     status: str
     platform: str = None
+    media_type: str = None
+    media_urls: list = None
     scheduled_for: str = None
 
 @router.put("/posts/{post_id}")
@@ -159,6 +165,11 @@ def update_post(post_id: int, request: PostUpdateRequest, db: Session = Depends(
     post.status = request.status
     if request.platform:
         post.platform = request.platform
+    if request.media_type:
+        post.media_type = request.media_type
+    if request.media_urls is not None:
+        post.media_urls = request.media_urls
+        post.media_type = request.media_type
     if request.scheduled_for:
         try:
             from datetime import timezone

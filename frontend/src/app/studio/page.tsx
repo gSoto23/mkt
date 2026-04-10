@@ -28,6 +28,8 @@ function StudioBoardContent() {
     const [editPrompt, setEditPrompt] = useState('');
     const [editDate, setEditDate] = useState('');
     const [editPlatform, setEditPlatform] = useState('');
+    const [editMediaType, setEditMediaType] = useState('IMAGE');
+    const [editMediaUrls, setEditMediaUrls] = useState<string[]>([]);
     const [generatingImage, setGeneratingImage] = useState(false);
     const [generatingProImage, setGeneratingProImage] = useState(false);
     const [generatingVideo, setGeneratingVideo] = useState(false);
@@ -103,6 +105,8 @@ function StudioBoardContent() {
                     media_prompt: editPrompt, 
                     status: 'APPROVED',
                     platform: editPlatform,
+                    media_type: editMediaType,
+                    media_urls: editMediaUrls,
                     scheduled_for: new Date(editDate).toISOString()
                 })
             });
@@ -129,6 +133,8 @@ function StudioBoardContent() {
         setEditCopy(post.copy); 
         setEditPrompt(post.media_prompt);
         setEditPlatform(post.platform || 'Facebook');
+        setEditMediaType(post.media_type || 'IMAGE');
+        setEditMediaUrls(post.media_urls || []);
         const d = new Date(post.scheduled_for); 
         // Convert to local YYYY-MM-DDThh:mm
         const dStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
@@ -146,8 +152,12 @@ function StudioBoardContent() {
             });
             const data = await res.json();
             if(data.image_url) {
-                setEditingPost({...editingPost, image_url: data.image_url, media_prompt: editPrompt});
-                setPosts(posts.map(p => p.id === editingPost.id ? {...p, image_url: data.image_url, media_prompt: editPrompt} : p));
+                if (editMediaType === 'CAROUSEL') {
+                    setEditMediaUrls(prev => [...prev, data.image_url]);
+                } else {
+                    setEditingPost({...editingPost, image_url: data.image_url, media_prompt: editPrompt});
+                    setPosts(posts.map(p => p.id === editingPost.id ? {...p, image_url: data.image_url, media_prompt: editPrompt} : p));
+                }
             } else {
                 alert("Error: " + data.detail);
             }
@@ -169,8 +179,12 @@ function StudioBoardContent() {
             });
             const data = await res.json();
             if(data.image_url) {
-                setEditingPost({...editingPost, image_url: data.image_url, media_prompt: editPrompt});
-                setPosts(posts.map(p => p.id === editingPost.id ? {...p, image_url: data.image_url, media_prompt: editPrompt} : p));
+                if (editMediaType === 'CAROUSEL') {
+                    setEditMediaUrls(prev => [...prev, data.image_url]);
+                } else {
+                    setEditingPost({...editingPost, image_url: data.image_url, media_prompt: editPrompt});
+                    setPosts(posts.map(p => p.id === editingPost.id ? {...p, image_url: data.image_url, media_prompt: editPrompt} : p));
+                }
             } else {
                 alert("Error: " + data.detail);
             }
@@ -254,6 +268,9 @@ function StudioBoardContent() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <Link href={`/studio/settings?brandId=${brandId}`} style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
                             ⚙️ Ajustar ADN de Marca
+                        </Link>
+                        <Link href={`/metrics?brandId=${brandId}`} style={{ background: 'rgba(255,255,255,0.05)', color: '#fff', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: '1px solid rgba(255,255,255,0.1)' }}>
+                            📊 Ver Estadísticas
                         </Link>
                         <a href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/social/meta_login?brand_id=${brandId}`} style={{ background: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.1)' : 'rgba(56, 189, 248, 0.1)', color: (socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? '#2ecc71' : '#38bdf8', padding: '10px', borderRadius: '8px', fontSize: '0.9rem', textDecoration: 'none', border: `1px solid ${(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? 'rgba(46, 204, 113, 0.3)' : 'rgba(56, 189, 248, 0.3)'}` }}>
                             {(socialStatus?.platforms?.includes('facebook') || socialStatus?.platforms?.includes('instagram')) ? `✅ Meta Conectado` : '🔗 Meta / IG'}
@@ -454,6 +471,13 @@ function StudioBoardContent() {
                                             <option value="Instagram">Instagram</option>
                                             <option value="TikTok">TikTok</option>
                                         </select>
+                                        <select value={editMediaType} onChange={e => setEditMediaType(e.target.value)} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.9rem', padding: '6px 12px', borderRadius: '8px', outline: 'none', cursor: 'pointer', fontFamily: 'inherit', fontWeight: 600, marginLeft: '10px' }}>
+                                            <option value="IMAGE">Imagen Regular</option>
+                                            <option value="VIDEO">Video</option>
+                                            <option value="CAROUSEL">Carrusel</option>
+                                            <option value="STORY">Historia (Story)</option>
+                                            <option value="REEL">Reel</option>
+                                        </select>
                                     </h2>
                                     <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', marginTop: '4px' }}>Esta publicación se enviará ÚNICAMENTE a esta red.</p>
                                 </div>
@@ -534,7 +558,35 @@ function StudioBoardContent() {
                            <div style={{ display: 'flex', flexDirection: 'column' }}>
                               <label style={{ display: 'block', marginBottom: '1rem', color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>🖼 Resultado Visual</label>
                               
-                              {editingPost.video_url ? (
+                              {editMediaType === 'CAROUSEL' ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', flex: 1 }}>
+                                      {editMediaUrls.length > 0 && (
+                                          <div className="premium-scrollbar" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '10px' }}>
+                                              {editMediaUrls.map((url, idx) => (
+                                                  <div key={idx} style={{ position: 'relative', minWidth: '160px', height: '160px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+                                                      {url.startsWith('data:video') || url.endsWith('.mp4') ? (
+                                                          <video src={url} autoPlay loop muted style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                      ) : (
+                                                          <img src={url} alt={`Slide ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                      )}
+                                                      <button onClick={() => setEditMediaUrls(prev => prev.filter((_, i) => i !== idx))} style={{ position: 'absolute', top: '4px', right: '4px', background: 'rgba(239, 68, 68, 0.9)', color: 'white', border: 'none', borderRadius: '50%', width: '24px', height: '24px', cursor: 'pointer', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      )}
+                                      <div style={{ display: 'flex', gap: '10px' }}>
+                                          <button onClick={generateImage} disabled={generatingImage || generatingProImage || generatingVideo} style={{ flex: 1, padding: '12px', background: 'rgba(99, 102, 241, 0.1)', border: '1px dashed rgba(99, 102, 241, 0.4)', color: '#818cf8', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(99, 102, 241, 0.1)'}>
+                                              {generatingImage ? 'Generando...' : '+ Imagen (Nano 2)'}
+                                          </button>
+                                          <button onClick={generateProImage} disabled={generatingImage || generatingProImage || generatingVideo} style={{ flex: 1, padding: '12px', background: 'rgba(245, 158, 11, 0.1)', border: '1px dashed rgba(245, 158, 11, 0.4)', color: '#fbbf24', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(245, 158, 11, 0.1)'}>
+                                              {generatingProImage ? 'Generando...' : '+ Imagen (Pro)'}
+                                          </button>
+                                          <button onClick={generateVideo} disabled={generatingImage || generatingProImage || generatingVideo} style={{ flex: 1, padding: '12px', background: 'rgba(236, 72, 153, 0.1)', border: '1px dashed rgba(236, 72, 153, 0.4)', color: '#f472b6', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)'}>
+                                              {generatingVideo ? 'Renderizando...' : '+ Video (Veo)'}
+                                          </button>
+                                      </div>
+                                  </div>
+                              ) : editingPost.video_url ? (
                                   <div style={{position: 'relative', flex: 1, display: 'flex', flexDirection: 'column'}}>
                                       <video src={editingPost.video_url} controls loop autoPlay style={{ width: '100%', height: '100%', minHeight: '220px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 25px rgba(0,0,0,0.3)' }} />
                                       <div style={{ position: 'absolute', top: 12, left: 12, display: 'flex', gap: '8px' }}>

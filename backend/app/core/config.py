@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     # OAuth Meta
     META_CLIENT_ID: str = ""
     META_CLIENT_SECRET: str = ""
+    META_SYSTEM_TOKEN: str = ""
     META_REDIRECT_URI: str = "http://localhost:8000/api/auth/meta/callback"
     
     # OAuth TikTok
