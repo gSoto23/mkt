@@ -14,8 +14,7 @@ def get_metrics_dashboard(brand_id: int, db: Session = Depends(get_db), current_
     brand = db.query(Brand).filter(Brand.id == brand_id).first()
     if not brand:
         raise HTTPException(status_code=404, detail="Brand not found")
-        
-    if brand.owner_id != current_user.id:
+    if brand.owner_id is not None and brand.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to access this brand's metrics")
 
     # Organic Metrics

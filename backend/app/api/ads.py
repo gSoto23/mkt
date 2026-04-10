@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -23,7 +24,7 @@ def get_user_ad_accounts(db: Session = Depends(get_db), current_user = Depends(g
     """
     Returns all ad accounts associated with the logged in user's brands
     """
-    accounts = db.query(AdAccount).join(AdAccount.brand).filter(Brand.owner_id == current_user.id).all()
+    accounts = db.query(AdAccount).join(AdAccount.brand).filter(or_(Brand.owner_id == current_user.id, Brand.owner_id.is_(None))).all()
     return [{"id": acc.id, "name": acc.ad_account_id, "platform": acc.platform, "brand_id": acc.brand_id} for acc in accounts]
 
 @router.post("/create")
@@ -36,7 +37,7 @@ def create_ad_campaign(req: BoostRequest, db: Session = Depends(get_db), current
     if not ad_acc:
         raise HTTPException(status_code=404, detail="Ad Account not found")
         
-    if ad_acc.brand.owner_id != current_user.id:
+    if ad_acc.brand.owner_id is not None and ad_acc.brand.owner_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to use this Ad Account")
         
     if req.campaign_type == "BOOST" and not req.post_id:
