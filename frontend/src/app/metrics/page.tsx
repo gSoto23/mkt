@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import styles from "./page.module.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 
-export default function MetricsDashboard() {
+function MetricsDashboardContent() {
     const searchParams = useSearchParams();
     const brandId = searchParams.get('brandId');
     const [data, setData] = useState<any>(null);
@@ -147,5 +147,13 @@ export default function MetricsDashboard() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function MetricsDashboard() {
+    return (
+        <Suspense fallback={<div className={styles.spinner}><h2>Iniciando Dashboard...</h2></div>}>
+            <MetricsDashboardContent />
+        </Suspense>
     );
 }
