@@ -4,7 +4,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 from app.db.database import get_db
-from app.models.base import AdCampaign, AdAccount, Post
+from app.models.base import AdCampaign, AdAccount, Post, Brand
 from app.services.ads_manager import launch_ad_campaign_task
 from app.api.auth import get_current_user
 
@@ -17,6 +17,14 @@ class BoostRequest(BaseModel):
     campaign_type: str # BOOST or DARK_POST
     budget_daily: int
     target_audience: dict
+
+@router.get("/accounts")
+def get_user_ad_accounts(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    """
+    Returns all ad accounts associated with the logged in user's brands
+    """
+    accounts = db.query(AdAccount).join(AdAccount.brand).filter(Brand.owner_id == current_user.id).all()
+    return [{"id": acc.id, "name": acc.ad_account_id, "platform": acc.platform, "brand_id": acc.brand_id} for acc in accounts]
 
 @router.post("/create")
 def create_ad_campaign(req: BoostRequest, db: Session = Depends(get_db), current_user = Depends(get_current_user)):

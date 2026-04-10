@@ -18,11 +18,21 @@ function AdsDashboardContent() {
     
     // Simulating loading ad accounts from API
     useEffect(() => {
-        // In a real scenario, fetch from /api/ads/accounts
-        setAdAccounts([
-            { id: 1, name: 'Darboles Meta Ads', platform: 'facebook' }
-        ]);
-        setSelectedAccount('1');
+        const fetchAccounts = async () => {
+            try {
+                const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ads/accounts`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAdAccounts(data);
+                    if (data.length > 0) {
+                        setSelectedAccount(data[0].id.toString());
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load ad accounts", err);
+            }
+        };
+        fetchAccounts();
     }, []);
 
     const handleSubmit = async (e: any) => {
