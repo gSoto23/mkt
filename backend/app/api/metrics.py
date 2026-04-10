@@ -78,14 +78,14 @@ def get_metrics_dashboard(brand_id: int, db: Session = Depends(get_db), current_
     avg_cpc = (total_spend / total_clicks) / 100 if total_clicks > 0 else 0
     
     # Historical Mock Data for Chart (Last 7 Days)
-    # In a real scenario we'd query by date, for now we return a smooth curve
+    # In a real scenario we'd query by date, for now we return a smooth curve based on totals
     chart_data = [
-        {"name": "Día 1", "organic": max(10, total_organic_reach//7), "paid": max(50, total_ad_impressions//10)},
-        {"name": "Día 2", "organic": max(25, total_organic_reach//6), "paid": max(120, total_ad_impressions//8)},
-        {"name": "Día 3", "organic": max(90, total_organic_reach//5), "paid": max(300, total_ad_impressions//6)},
-        {"name": "Día 4", "organic": max(120, total_organic_reach//4), "paid": max(450, total_ad_impressions//5)},
-        {"name": "Día 5", "organic": max(200, total_organic_reach//3), "paid": max(800, total_ad_impressions//4)},
-        {"name": "Día 6", "organic": max(250, total_organic_reach//2), "paid": max(1000, total_ad_impressions//3)},
+        {"name": "Día 1", "organic": int(total_organic_reach * 0.05), "paid": int(total_ad_impressions * 0.05)},
+        {"name": "Día 2", "organic": int(total_organic_reach * 0.15), "paid": int(total_ad_impressions * 0.15)},
+        {"name": "Día 3", "organic": int(total_organic_reach * 0.30), "paid": int(total_ad_impressions * 0.25)},
+        {"name": "Día 4", "organic": int(total_organic_reach * 0.45), "paid": int(total_ad_impressions * 0.40)},
+        {"name": "Día 5", "organic": int(total_organic_reach * 0.65), "paid": int(total_ad_impressions * 0.60)},
+        {"name": "Día 6", "organic": int(total_organic_reach * 0.85), "paid": int(total_ad_impressions * 0.80)},
         {"name": "Día 7", "organic": total_organic_reach, "paid": total_ad_impressions},
     ]
         
