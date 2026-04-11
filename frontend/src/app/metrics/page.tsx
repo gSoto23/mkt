@@ -132,6 +132,7 @@ function MetricsDashboardContent() {
                             <div key={post.id} className={styles.dataRow}>
                                 <div className={styles.dataMain}>
                                     <span className={styles.dataTitle}>{post.copy}</span>
+                                    <a href={post.url} target="_blank" rel="noreferrer" style={{ fontSize: '0.75rem', color: '#818cf8', textDecoration: 'none', display: 'inline-block', marginTop: '0.25rem' }}>🔗 Ver post en su Plataforma</a>
                                 </div>
                                 <div className={styles.dataStats}>
                                     <div className={styles.statCol}>
