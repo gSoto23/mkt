@@ -20,10 +20,10 @@ def sync_all_social_metrics():
             for acc in accounts:
                 logger.info(f"[ANALYTICS SYNC] Analizando cuenta FB: {acc.provider_account_id}")
                 
-                # Fetch published posts root data (id, message, permalink, total likes)
+                # Fetch published posts root data
                 url = f"https://graph.facebook.com/v19.0/{acc.provider_account_id}/published_posts"
                 params = {
-                    "fields": "id,message,permalink_url,likes.summary(true)",
+                    "fields": "id,message,permalink_url,likes.summary(true),attachments",
                     "access_token": acc.access_token,
                     "limit": 100
                 }
@@ -74,17 +74,23 @@ def sync_all_social_metrics():
                             else:
                                 print(f"⚠️ [FB Reach Error 2] {matched['id']}: {res_vid.text}")
 
-                        # 3. Y si todo falla (Es un Reel puro nativo y requiere Video ID)
-                        if reach == 0 and "_" in matched['id']:
-                            vid_id = matched['id'].split('_')[-1]
-                            vid_ins_url = f"https://graph.facebook.com/v19.0/{vid_id}/video_insights"
-                            res_raw = client.get(vid_ins_url, params={"metric": "total_video_views", "access_token": acc.access_token})
-                            if res_raw.is_success:
-                                data_raw = res_raw.json().get("data", [])
-                                if data_raw and len(data_raw) > 0:
-                                    reach = data_raw[0].get("values", [{}])[0].get("value", 0)
-                            else:
-                                print(f"⚠️ [FB Reach Error 3] {matched['id']}: {res_raw.text}")
+                        # 3. Y si todo falla (Es un Reel puro nativo y requiere Video ID original)
+                        if reach == 0:
+                            vid_id = None
+                            attachments = matched.get("attachments", {}).get("data", [])
+                            if attachments and "target" in attachments[0]:
+                                vid_id = attachments[0]["target"].get("id")
+                            
+                            if vid_id:
+                                vid_ins_url = f"https://graph.facebook.com/v19.0/{vid_id}/video_insights"
+                                res_raw = client.get(vid_ins_url, params={"metric": "total_video_views", "access_token": acc.access_token})
+                                if res_raw.is_success:
+                                    data_raw = res_raw.json().get("data", [])
+                                    if data_raw and len(data_raw) > 0:
+                                        reach = data_raw[0].get("values", [{}])[0].get("value", 0)
+                                else:
+                                    # Still fail? Likely just 0 reach or different metric
+                                    pass
                                     
                         new_metrics = {
                             "meta_post_id": matched["id"],
@@ -146,6 +152,9 @@ def sync_all_social_metrics():
                             if data_ins and len(data_ins) > 0:
                                 reach = data_ins[0].get("values", [{}])[0].get("value", 0)
                         else:
+                            # 10 means missing instagram_manage_insights
+                            if "code\":10" in res_ins.text:
+                                logger.error(f"[IG Reach Error] Missing 'instagram_manage_insights' scope for IG profile. Reach locked at 0.")
                             print(f"⚠️ [IG Reach Error] Type: {matched.get('media_type')} | {matched['id']}: {res_ins.text}")
                                 
                         new_metrics = {
