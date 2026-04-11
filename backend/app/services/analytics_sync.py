@@ -89,7 +89,80 @@ def sync_all_social_metrics():
                         }
                         
                         lp.metrics = new_metrics
-                        logger.info(f"  [SYNCED] Post #{lp.id} -> Reach {reach}, Likes {likes}")
+                        logger.info(f"  [SYNCED FB] Post #{lp.id} -> Reach {reach}, Likes {likes}")
+                        
+        # INSTAGRAM SYNC
+        with httpx.Client() as client:
+            ig_accounts = db.query(SocialAccount).filter(SocialAccount.platform == "instagram").all()
+            for acc in ig_accounts:
+                logger.info(f"[ANALYTICS SYNC] Analizando cuenta IG: {acc.provider_account_id}")
+                
+                url = f"https://graph.facebook.com/v19.0/{acc.provider_account_id}/media"
+                params = {
+                    "fields": "id,caption,permalink,like_count,comments_count,media_type",
+                    "access_token": acc.access_token,
+                    "limit": 100
+                }
+                
+                res = client.get(url, params=params)
+                if not res.is_success:
+                    logger.error(f"[ANALYTICS SYNC] Error IG {acc.provider_account_id}: {res.text}")
+                    continue
+                    
+                ig_posts = res.json().get("data", [])
+                
+                local_posts = db.query(Post).filter(
+                    Post.brand_id == acc.brand_id,
+                    Post.status == "PUBLISHED"
+                ).all()
+                
+                for lp in local_posts:
+                    matched = None
+                    for ip in ig_posts:
+                        ig_msg = ip.get("caption", "").strip()
+                        lp_msg = lp.copy.strip()
+                        if lp_msg and lp_msg[:30] in ig_msg:
+                            matched = ip
+                            break
+                            
+                    if matched:
+                        likes = matched.get("like_count", 0)
+                        comments = matched.get("comments_count", 0)
+                        reach = 0
+                        
+                        # IG Reach Endpoint
+                        ig_metric = "reach" if matched.get("media_type") != "VIDEO" else "plays"
+                        ins_url = f"https://graph.facebook.com/v19.0/{matched['id']}/insights"
+                        
+                        res_ins = client.get(ins_url, params={"metric": ig_metric, "access_token": acc.access_token})
+                        if res_ins.is_success:
+                            data_ins = res_ins.json().get("data", [])
+                            if data_ins and len(data_ins) > 0:
+                                reach = data_ins[0].get("values", [{}])[0].get("value", 0)
+                                
+                        new_metrics = {
+                            "meta_post_id": matched["id"],
+                            "reach": reach,
+                            "likes": likes,
+                            "comments": comments,
+                            "url": matched.get("permalink", f"https://instagram.com/p/{matched['id']}")
+                        }
+                        
+                        # Merge to existing instead of overwrite if it's already a dict
+                        # BUT wait, the Post applies to Both? 
+                        # In Huevos/GMKT each post represents the content. Meta and IG are both targeted.
+                        # If the post went to both, we should sum them up!
+                        existing = lp.metrics or {}
+                        
+                        lp.metrics = {
+                            "meta_post_id": matched["id"], # We only keep the last ID in reference
+                            "reach": existing.get("reach", 0) + reach,
+                            "likes": existing.get("likes", 0) + likes,
+                            "comments": existing.get("comments", 0) + comments,
+                            "url": new_metrics["url"] # We prefer IG url or FB url
+                        }
+                        logger.info(f"  [SYNCED IG] Post #{lp.id} -> Reach {reach}, Likes {likes}")
+                        
         db.commit()
     except Exception as e:
         logger.error(f"[ANALYTICS SYNC] Fatal Error: {e}")

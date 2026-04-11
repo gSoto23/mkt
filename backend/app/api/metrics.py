@@ -4,6 +4,7 @@ from sqlalchemy import func
 from app.db.database import get_db
 from app.models.base import Brand, Post, AdCampaign, AdAccount
 from typing import List, Dict, Any
+from datetime import datetime, timedelta
 from app.api.auth import get_current_user
 
 router = APIRouter()
@@ -80,17 +81,31 @@ def get_metrics_dashboard(brand_id: int, db: Session = Depends(get_db), current_
     # Global KPI
     avg_cpc = (total_spend / total_clicks) / 100 if total_clicks > 0 else 0
     
-    # Historical Mock Data for Chart (Last 7 Days)
-    # In a real scenario we'd query by date, for now we return a smooth curve based on totals
-    chart_data = [
-        {"name": "Día 1", "organic": int(total_organic_reach * 0.05), "paid": int(total_ad_impressions * 0.05)},
-        {"name": "Día 2", "organic": int(total_organic_reach * 0.15), "paid": int(total_ad_impressions * 0.15)},
-        {"name": "Día 3", "organic": int(total_organic_reach * 0.30), "paid": int(total_ad_impressions * 0.25)},
-        {"name": "Día 4", "organic": int(total_organic_reach * 0.45), "paid": int(total_ad_impressions * 0.40)},
-        {"name": "Día 5", "organic": int(total_organic_reach * 0.65), "paid": int(total_ad_impressions * 0.60)},
-        {"name": "Día 6", "organic": int(total_organic_reach * 0.85), "paid": int(total_ad_impressions * 0.80)},
-        {"name": "Día 7", "organic": total_organic_reach, "paid": total_ad_impressions},
-    ]
+    # Historical Data for Chart (Last 7 Days)
+    today = datetime.utcnow().date()
+    days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    
+    chart_data = []
+    
+    for d in days:
+        organic_for_day = 0
+        paid_for_day = 0
+        
+        # Organic Reach per day (sum of reach for posts created on this day)
+        for p in posts:
+            if p.created_at and p.created_at.date() == d:
+                r = p.metrics.get('reach', 0) if p.metrics else 0
+                organic_for_day += r
+                
+        # In the future, paid_for_day should come from an AdDailyStats table.
+        # Since we don't have historical ad arrays, we just show 0 or an average if campaigns are active.
+        # For true representation, we will just use 0 until ad daily tracking is implemented.
+                
+        chart_data.append({
+            "name": d.strftime("%d %b"),
+            "organic": organic_for_day,
+            "paid": paid_for_day
+        })
         
     return {
         "kpis": {
