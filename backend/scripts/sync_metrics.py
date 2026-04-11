@@ -19,7 +19,7 @@ def main():
             # Fetch published posts
             url = f"https://graph.facebook.com/v19.0/{acc.provider_account_id}/published_posts"
             params = {
-                "fields": "id,message,permalink_url,likes.summary(true),insights.metric(post_impressions_unique,post_impressions)",
+                "fields": "id,message,permalink_url,likes.summary(true)",
                 "access_token": acc.access_token,
                 "limit": 100
             }
@@ -53,20 +53,36 @@ def main():
                 if matched:
                     # Likes desde el root sumary
                     likes = matched.get("likes", {}).get("summary", {}).get("total_count", 0)
-                    
-                    # Extraer insights
-                    insights = matched.get("insights", {}).get("data", [])
                     reach = 0
                     
-                    # Debug en consola para ver qué devolvió Meta (útil si Reels fallan)
-                    print(f"  [DEBUG] Matched {matched['id']} - Insights len: {len(insights)}")
+                    # Llamada individual de insights (Safe)
+                    ins_url = f"https://graph.facebook.com/v19.0/{matched['id']}/insights"
                     
-                    for row in insights:
-                        if row["name"] in ["post_impressions_unique", "post_impressions"]:
-                            val = row["values"][0].get("value", 0)
-                            if val > reach:
-                                reach = val
+                    # 1. Intentamos post_impressions_unique
+                    res_ins = client.get(ins_url, params={"metric": "post_impressions_unique", "access_token": acc.access_token})
+                    if res_ins.is_success:
+                        data_ins = res_ins.json().get("data", [])
+                        if data_ins and len(data_ins) > 0:
+                            reach_val = data_ins[0].get("values", [{}])[0].get("value", 0)
+                            reach = reach_val
                             
+                    # 2. Si es 0, tal vez es video, intentamos post_video_views
+                    if reach == 0:
+                        res_vid = client.get(ins_url, params={"metric": "post_video_views_unique", "access_token": acc.access_token}) # Reels/Videos
+                        if res_vid.is_success:
+                            data_vid = res_vid.json().get("data", [])
+                            if data_vid and len(data_vid) > 0:
+                                reach_val = data_vid[0].get("values", [{}])[0].get("value", 0)
+                                reach = reach_val
+
+                    # 3. Y si todo falla y no sabemos el endpoint de reel, sacamos insights crudos
+                    if reach == 0:
+                        res_raw = client.get(ins_url, params={"metric": "post_video_views", "access_token": acc.access_token})
+                        if res_raw.is_success:
+                            data_raw = res_raw.json().get("data", [])
+                            if data_raw and len(data_raw) > 0:
+                                reach = data_raw[0].get("values", [{}])[0].get("value", 0)
+                                
                     new_metrics = {
                         "meta_post_id": matched["id"],
                         "reach": reach,
