@@ -218,6 +218,16 @@ def publish_to_facebook(post: Post, account: SocialAccount):
             }, timeout=60.0)
             
         res.raise_for_status()
+        
+        # Guardar ID del post en metrics para futuro tracking
+        post_id = res.json().get("id") or res.json().get("post_id")
+        if post_id:
+            # Reasignamos completo dict para que SQLalchemy lo detecte como cambio
+            post.metrics = {
+                "meta_post_id": post_id,
+                "reach": 0, "likes": 0, "comments": 0,
+                "url": f"https://facebook.com/{post_id}"
+            }
 
 def publish_to_instagram(post: Post, account: SocialAccount):
     media_type = getattr(post, "media_type", "IMAGE")
@@ -334,6 +344,13 @@ def publish_to_instagram(post: Post, account: SocialAccount):
                     timeout=30.0
                 )
                 publish_res.raise_for_status()
+                post_id = publish_res.json().get("id")
+                if post_id:
+                    post.metrics = {
+                        "meta_post_id": post_id,
+                        "reach": 0, "likes": 0, "comments": 0,
+                        "url": f"https://instagram.com/p/{post_id}" # Placeholder, se actualizará
+                    }
                 logger.info(f"[META API] Publicación Exitosa Definitiva en el intento {attempt + 1}")
                 break  # Sale del loop de retry exitosamente
             except httpx.HTTPStatusError as e:
@@ -381,4 +398,13 @@ def publish_to_tiktok(post: Post, account: SocialAccount):
         
         res = client.post(url, headers=headers, json=data, timeout=60.0)
         res.raise_for_status()
-        logger.info(f"TikTok publish_id: {res.json().get('data', {}).get('publish_id')}")
+        res_data = res.json()
+        publish_id = res_data.get('data', {}).get('publish_id')
+        logger.info(f"TikTok publish_id: {publish_id}")
+        
+        if publish_id:
+            post.metrics = {
+                "meta_post_id": publish_id,
+                "reach": 0, "likes": 0, "comments": 0,
+                "url": "https://www.tiktok.com/business/"
+            }

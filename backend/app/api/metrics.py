@@ -32,22 +32,11 @@ def get_metrics_dashboard(brand_id: int, db: Session = Depends(get_db), current_
         l = metrics.get('likes', 0)
         c = metrics.get('comments', 0)
         
-        # Generación Pseudo-Random si Meta Graph no ha retornado datos aún o es 0
-        if r == 0 and l == 0:
-            import random
-            random.seed(p.id)
-            r = random.randint(150, 800)
-            l = random.randint(10, int(r * 0.15))
-            c = random.randint(0, l // 3)
-            # Guardamos el mock temporalmente para consistencia si hace falta, aunque no en BD
-            
         total_organic_reach += r
         total_likes += l
         total_comments += c
         
-        post_url = "https://business.facebook.com/latest/posts/published_posts"
-        if p.platform and p.platform.lower() == "tiktok":
-            post_url = "https://www.tiktok.com/business/"
+        post_url = metrics.get('url', '#')
 
         organic_performance.append({
             "id": p.id,
