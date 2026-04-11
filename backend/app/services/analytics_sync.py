@@ -62,16 +62,19 @@ def sync_all_social_metrics():
                             if data_ins and len(data_ins) > 0:
                                 reach = data_ins[0].get("values", [{}])[0].get("value", 0)
                                 
-                        # 2. Views Reel/Video (Fallback)
+                        # 2. Views Reel/Video (Fallback a métricas de video específicas)
                         if reach == 0:
-                            res_vid = client.get(ins_url, params={"metric": "post_video_views_unique", "access_token": acc.access_token})
+                            res_vid = client.get(ins_url, params={"metric": "post_video_views", "access_token": acc.access_token})
                             if res_vid.is_success:
                                 data_vid = res_vid.json().get("data", [])
                                 if data_vid and len(data_vid) > 0:
                                     reach = data_vid[0].get("values", [{}])[0].get("value", 0)
 
-                        if reach == 0:
-                            res_raw = client.get(ins_url, params={"metric": "post_video_views", "access_token": acc.access_token})
+                        # 3. Y si todo falla (Es un Reel puro nativo y requiere Video ID)
+                        if reach == 0 and "_" in matched['id']:
+                            vid_id = matched['id'].split('_')[-1]
+                            vid_ins_url = f"https://graph.facebook.com/v19.0/{vid_id}/video_insights"
+                            res_raw = client.get(vid_ins_url, params={"metric": "total_video_views", "access_token": acc.access_token})
                             if res_raw.is_success:
                                 data_raw = res_raw.json().get("data", [])
                                 if data_raw and len(data_raw) > 0:
