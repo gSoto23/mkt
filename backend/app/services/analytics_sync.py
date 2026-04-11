@@ -152,7 +152,7 @@ def sync_all_social_metrics():
                         reach = 0
                         
                         # IG Reach Endpoint
-                        ig_metric = "reach" if matched.get("media_type") != "VIDEO" else "plays"
+                        ig_metric = "reach"
                         ins_url = f"https://graph.facebook.com/v19.0/{matched['id']}/insights"
                         
                         res_ins = client.get(ins_url, params={"metric": ig_metric, "access_token": acc.access_token})
