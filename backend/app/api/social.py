@@ -107,7 +107,7 @@ async def meta_callback(code: str, state: str, db: Session = Depends(get_db)):
             page_token = page["access_token"] 
             
             # Guardamos/Actualizamos la página de FB
-            db_page = db.query(SocialAccount).filter(SocialAccount.provider_account_id == page_id).first()
+            db_page = db.query(SocialAccount).filter(SocialAccount.provider_account_id == page_id, SocialAccount.brand_id == brand_id).first()
             if not db_page:
                 db_page = SocialAccount(brand_id=brand_id, platform="facebook", provider_account_id=page_id)
                 db.add(db_page)
@@ -118,7 +118,7 @@ async def meta_callback(code: str, state: str, db: Session = Depends(get_db)):
             # Guardamos la página de Instagram Business (Si existe)
             if "instagram_business_account" in page:
                 ig_id = page["instagram_business_account"]["id"]
-                db_ig = db.query(SocialAccount).filter(SocialAccount.provider_account_id == ig_id).first()
+                db_ig = db.query(SocialAccount).filter(SocialAccount.provider_account_id == ig_id, SocialAccount.brand_id == brand_id).first()
                 if not db_ig:
                     db_ig = SocialAccount(brand_id=brand_id, platform="instagram", provider_account_id=ig_id)
                     db.add(db_ig)
@@ -336,7 +336,7 @@ async def tiktok_callback(code: str, state: str, db: Session = Depends(get_db)):
         refresh_token = token_data.get("refresh_token")
         
         # Guardamos/Actualizamos la cuenta de TikTok
-        db_tt = db.query(SocialAccount).filter(SocialAccount.provider_account_id == open_id).first()
+        db_tt = db.query(SocialAccount).filter(SocialAccount.provider_account_id == open_id, SocialAccount.brand_id == brand_id).first()
         if not db_tt:
             db_tt = SocialAccount(brand_id=brand_id, platform="tiktok", provider_account_id=open_id)
             db.add(db_tt)
