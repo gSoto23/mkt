@@ -1,8 +1,10 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function TermsOfService() {
   return (
     <div style={{ padding: '4rem 2rem', maxWidth: '800px', margin: '0 auto', fontFamily: 'var(--font-inter)', color: '#e2e8f0', lineHeight: '1.6' }}>
+      <Link href="/" style={{ color: '#818cf8', textDecoration: 'none', display: 'inline-block', marginBottom: '2rem', fontSize: '1rem', fontWeight: 600 }}>← Volver al inicio</Link>
       <h1 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: '#fff' }}>Terms of Service</h1>
       <p style={{ marginBottom: '1rem', color: '#94a3b8' }}>Last Updated: {new Date().toLocaleDateString()}</p>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { apiFetch } from "@/lib/api";
 import styles from "./page.module.css";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -47,6 +48,7 @@ function MetricsDashboardContent() {
     return (
         <div className={styles.container}>
             <div className={styles.header}>
+                <Link href={`/studio?brandId=${brandId}`} style={{ color: '#818cf8', textDecoration: 'none', display: 'inline-block', marginBottom: '1rem', fontSize: '0.9rem', fontWeight: 600 }}>← Volver al Estudio</Link>
                 <h1>Dashboard de Rendimiento</h1>
                 <p>Monitoreo inteligente de alcance orgánico e impresiones publicitarias.</p>
             </div>
