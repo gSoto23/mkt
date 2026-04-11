@@ -64,7 +64,7 @@ def sync_all_social_metrics():
                         else:
                             print(f"⚠️ [FB Reach Error 1] {matched['id']}: {res_ins.text}")
                                 
-                        # 2. Views Reel/Video (Fallback a métricas de video específicas)
+                        # 2. Views Reel/Video (Fallback a métricas de video específicas si el anterior falló o dictó 0)
                         if reach == 0:
                             res_vid = client.get(ins_url, params={"metric": "post_video_views", "access_token": acc.access_token})
                             if res_vid.is_success:
@@ -72,8 +72,8 @@ def sync_all_social_metrics():
                                 if data_vid and len(data_vid) > 0:
                                     reach = data_vid[0].get("values", [{}])[0].get("value", 0)
                             else:
-                                print(f"⚠️ [FB Reach Error 2] {matched['id']}: {res_vid.text}")
-
+                                pass # This fails cleanly often for non-video posts
+                                
                         # 3. Y si todo falla (Es un Reel puro nativo y requiere Video ID original)
                         if reach == 0:
                             vid_id = None
@@ -89,8 +89,9 @@ def sync_all_social_metrics():
                                     if data_raw and len(data_raw) > 0:
                                         reach = data_raw[0].get("values", [{}])[0].get("value", 0)
                                 else:
-                                    # Still fail? Likely just 0 reach or different metric
-                                    pass
+                                    print(f"⚠️ [FB Video Reach] No views for Video {vid_id}: {res_raw.text}")
+                            else:
+                                print(f"⚠️ [FB Diagnostic] ID: {matched['id']} failed all reach queries. Is it just organically 0?")
                                     
                         existing = lp.metrics or {}
                         new_metrics = {
