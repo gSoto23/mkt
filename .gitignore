@@ -36,3 +36,4 @@ logs/
 # Docker
 .docker/
 docker-compose.override.yml
+.gemini/

@@ -61,6 +61,8 @@ def sync_all_social_metrics():
                             data_ins = res_ins.json().get("data", [])
                             if data_ins and len(data_ins) > 0:
                                 reach = data_ins[0].get("values", [{}])[0].get("value", 0)
+                        else:
+                            print(f"⚠️ [FB Reach Error 1] {matched['id']}: {res_ins.text}")
                                 
                         # 2. Views Reel/Video (Fallback a métricas de video específicas)
                         if reach == 0:
@@ -69,6 +71,8 @@ def sync_all_social_metrics():
                                 data_vid = res_vid.json().get("data", [])
                                 if data_vid and len(data_vid) > 0:
                                     reach = data_vid[0].get("values", [{}])[0].get("value", 0)
+                            else:
+                                print(f"⚠️ [FB Reach Error 2] {matched['id']}: {res_vid.text}")
 
                         # 3. Y si todo falla (Es un Reel puro nativo y requiere Video ID)
                         if reach == 0 and "_" in matched['id']:
@@ -79,6 +83,8 @@ def sync_all_social_metrics():
                                 data_raw = res_raw.json().get("data", [])
                                 if data_raw and len(data_raw) > 0:
                                     reach = data_raw[0].get("values", [{}])[0].get("value", 0)
+                            else:
+                                print(f"⚠️ [FB Reach Error 3] {matched['id']}: {res_raw.text}")
                                     
                         new_metrics = {
                             "meta_post_id": matched["id"],
@@ -139,6 +145,8 @@ def sync_all_social_metrics():
                             data_ins = res_ins.json().get("data", [])
                             if data_ins and len(data_ins) > 0:
                                 reach = data_ins[0].get("values", [{}])[0].get("value", 0)
+                        else:
+                            print(f"⚠️ [IG Reach Error] Type: {matched.get('media_type')} | {matched['id']}: {res_ins.text}")
                                 
                         new_metrics = {
                             "meta_post_id": matched["id"],
