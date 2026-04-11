@@ -7,7 +7,7 @@ celery_app = Celery(
     "gmkt_worker",
     broker=REDIS_URL,
     backend=REDIS_URL,
-    include=["app.services.social_publishing"]
+    include=["app.services.social_publishing", "app.services.analytics_sync"]
 )
 
 celery_app.conf.update(
@@ -20,6 +20,10 @@ celery_app.conf.update(
         "check-scheduled-posts-every-min": {
             "task": "app.services.social_publishing.check_scheduled_posts",
             "schedule": 60.0,
+        },
+        "sync-metrics-every-6-hours": {
+            "task": "app.services.analytics_sync.sync_all_social_metrics",
+            "schedule": 21600.0, # 6 horas en segundos
         }
     }
 )
