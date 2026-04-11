@@ -92,13 +92,22 @@ def sync_all_social_metrics():
                                     # Still fail? Likely just 0 reach or different metric
                                     pass
                                     
+                        existing = lp.metrics or {}
                         new_metrics = {
                             "meta_post_id": matched["id"],
-                            "reach": reach,
-                            "likes": likes,
-                            "comments": 0,
+                            "fb_reach": reach,
+                            "fb_likes": likes,
+                            "fb_comments": 0,
+                            "ig_reach": existing.get("ig_reach", 0),
+                            "ig_likes": existing.get("ig_likes", 0),
+                            "ig_comments": existing.get("ig_comments", 0),
                             "url": matched.get("permalink_url", f"https://facebook.com/{matched['id']}")
                         }
+                        
+                        # Sum values into totals for easy UI access
+                        new_metrics["reach"] = new_metrics["fb_reach"] + new_metrics["ig_reach"]
+                        new_metrics["likes"] = new_metrics["fb_likes"] + new_metrics["ig_likes"]
+                        new_metrics["comments"] = new_metrics["fb_comments"] + new_metrics["ig_comments"]
                         
                         lp.metrics = new_metrics
                         logger.info(f"  [SYNCED FB] Post #{lp.id} -> Reach {reach}, Likes {likes}")
@@ -165,19 +174,26 @@ def sync_all_social_metrics():
                             "url": matched.get("permalink", f"https://instagram.com/p/{matched['id']}")
                         }
                         
-                        # Merge to existing instead of overwrite if it's already a dict
-                        # BUT wait, the Post applies to Both? 
-                        # In Huevos/GMKT each post represents the content. Meta and IG are both targeted.
-                        # If the post went to both, we should sum them up!
+                        # Update existing metrics dict with IG specific keys
                         existing = lp.metrics or {}
                         
-                        lp.metrics = {
-                            "meta_post_id": matched["id"], # We only keep the last ID in reference
-                            "reach": existing.get("reach", 0) + reach,
-                            "likes": existing.get("likes", 0) + likes,
-                            "comments": existing.get("comments", 0) + comments,
-                            "url": new_metrics["url"] # We prefer IG url or FB url
+                        new_metrics = {
+                            "meta_post_id": matched["id"],
+                            "fb_reach": existing.get("fb_reach", 0),
+                            "fb_likes": existing.get("fb_likes", 0),
+                            "fb_comments": existing.get("fb_comments", 0),
+                            "ig_reach": reach,
+                            "ig_likes": likes,
+                            "ig_comments": comments,
+                            "url": matched.get("permalink", f"https://instagram.com/p/{matched['id']}")
                         }
+                        
+                        # Sum values to expose top-level totals gracefully
+                        new_metrics["reach"] = new_metrics["fb_reach"] + new_metrics["ig_reach"]
+                        new_metrics["likes"] = new_metrics["fb_likes"] + new_metrics["ig_likes"]
+                        new_metrics["comments"] = new_metrics["fb_comments"] + new_metrics["ig_comments"]
+                        
+                        lp.metrics = new_metrics
                         logger.info(f"  [SYNCED IG] Post #{lp.id} -> Reach {reach}, Likes {likes}")
                         
         db.commit()
