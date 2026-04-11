@@ -12,6 +12,7 @@ function MetricsDashboardContent() {
     const brandId = searchParams.get('brandId');
     const [data, setData] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [organicSort, setOrganicSort] = useState<"recent" | "likes" | "reach">("recent");
 
     useEffect(() => {
         if (!brandId) return;
@@ -44,6 +45,12 @@ function MetricsDashboardContent() {
     if (!data) {
         return <div className={styles.container}>Error al cargar métricas.</div>;
     }
+
+    const sortedOrganic = [...data.organic_top].sort((a: any, b: any) => {
+        if (organicSort === "likes") return b.likes - a.likes;
+        if (organicSort === "reach") return b.reach - a.reach;
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
 
     return (
         <div className={styles.container}>
@@ -126,9 +133,20 @@ function MetricsDashboardContent() {
                 </div>
 
                 <div className={styles.tableCard}>
-                    <h3>💖 Top Posts Orgánicos</h3>
-                    <div className={styles.dataList}>
-                        {data.organic_top.length > 0 ? data.organic_top.map((post: any) => (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h3 style={{ margin: 0 }}>💖 Posts Orgánicos</h3>
+                        <select 
+                            value={organicSort} 
+                            onChange={(e: any) => setOrganicSort(e.target.value)}
+                            style={{ padding: '0.25rem 0.5rem', borderRadius: '4px', backgroundColor: '#334155', color: '#fff', border: '1px solid #475569', fontSize: '0.8rem' }}
+                        >
+                            <option value="recent">Más Recientes</option>
+                            <option value="likes">Más Likes</option>
+                            <option value="reach">Más Reach</option>
+                        </select>
+                    </div>
+                    <div className={styles.dataList} style={{ maxHeight: '500px', overflowY: 'auto' }}>
+                        {sortedOrganic.length > 0 ? sortedOrganic.map((post: any) => (
                             <div key={post.id} className={styles.dataRow}>
                                 <div className={styles.dataMain}>
                                     <span className={styles.dataTitle}>{post.copy}</span>

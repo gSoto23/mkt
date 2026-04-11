@@ -48,8 +48,8 @@ def get_metrics_dashboard(brand_id: int, db: Session = Depends(get_db), current_
             "date": p.created_at.isoformat() if p.created_at else None
         })
         
-    # Sort organic top performers by likes
-    organic_top = sorted(organic_performance, key=lambda x: x["likes"], reverse=True)[:5]
+    # Sort organic top performers by created_date desc internally first (frontend can re-sort)
+    organic_top = sorted(organic_performance, key=lambda x: x["date"] or "", reverse=True)
     
     # Ads Metrics
     ad_accounts = db.query(AdAccount).filter(AdAccount.brand_id == brand_id).all()
