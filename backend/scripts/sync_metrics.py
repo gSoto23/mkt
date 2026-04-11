@@ -19,7 +19,7 @@ def main():
             # Fetch published posts
             url = f"https://graph.facebook.com/v19.0/{acc.provider_account_id}/published_posts"
             params = {
-                "fields": "id,message,permalink_url,insights.metric(post_impressions_unique,post_reactions_by_type_total)",
+                "fields": "id,message,permalink_url,likes.summary(true),insights.metric(post_impressions_unique,post_impressions)",
                 "access_token": acc.access_token,
                 "limit": 100
             }
@@ -51,18 +51,21 @@ def main():
                         break
                         
                 if matched:
+                    # Likes desde el root sumary
+                    likes = matched.get("likes", {}).get("summary", {}).get("total_count", 0)
+                    
                     # Extraer insights
                     insights = matched.get("insights", {}).get("data", [])
                     reach = 0
-                    likes = 0
+                    
+                    # Debug en consola para ver qué devolvió Meta (útil si Reels fallan)
+                    print(f"  [DEBUG] Matched {matched['id']} - Insights len: {len(insights)}")
                     
                     for row in insights:
-                        if row["name"] == "post_impressions_unique":
-                            reach = row["values"][0]["value"]
-                        elif row["name"] == "post_reactions_by_type_total":
-                            # esto es un dict de {"like": X, "love": Y}
-                            reactions_dict = row["values"][0].get("value", {})
-                            likes = sum(reactions_dict.values())
+                        if row["name"] in ["post_impressions_unique", "post_impressions"]:
+                            val = row["values"][0].get("value", 0)
+                            if val > reach:
+                                reach = val
                             
                     new_metrics = {
                         "meta_post_id": matched["id"],
