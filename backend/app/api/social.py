@@ -32,6 +32,7 @@ def meta_login(brand_id: int):
         "pages_show_list",
         "instagram_basic",
         "instagram_content_publish",
+        "instagram_manage_insights",
         "business_management",
         "public_profile"
     ]
