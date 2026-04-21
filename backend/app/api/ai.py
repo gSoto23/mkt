@@ -217,6 +217,7 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
 
 class GenerateImageRequest(BaseModel):
     media_prompt: str
+    reference_image_b64: str = None
 
 @router.post("/posts/{post_id}/generate-image")
 def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Session = Depends(get_db)):
@@ -229,10 +230,36 @@ def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Ses
          raise HTTPException(status_code=500, detail="Gemini API no configurada.")
          
     try:
+        enhanced_prompt = request.media_prompt
+
+        # Interceptor de ancla visual: Traducción de Imagen a Prompt Ultra-Detallado
+        if request.reference_image_b64:
+            try:
+                b64_img = request.reference_image_b64
+                if "," in b64_img:
+                    header, b64data = b64_img.split(",", 1)
+                    mime_type = header.split(";")[0].split(":")[1]
+                else:
+                    mime_type = "image/jpeg"
+                    b64data = b64_img
+                
+                image_bytes = base64.b64decode(b64data)
+                describe_res = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        "Analyze this character reference image. Describe in 60 words maximum the EXACT physical appearance, clothing, colors, face, body shape, and aesthetic style. Ignore background."
+                    ]
+                )
+                if describe_res and describe_res.text:
+                    enhanced_prompt = f"CRITICAL SUBJECT TO DRAW EXACTLY LIKE THIS: {describe_res.text}. SCENE ACTION: {request.media_prompt}"
+            except Exception as ex:
+                logging.warning(f"Error interceptando imagen de referencia: {ex}")
+
         # Llamamos al modelo de generacion visual de Google
         result = client.models.generate_images(
             model='imagen-4.0-fast-generate-001',
-            prompt=request.media_prompt,
+            prompt=enhanced_prompt,
             config=types.GenerateImagesConfig(
                 number_of_images=1,
                 output_mime_type="image/jpeg",
@@ -272,6 +299,30 @@ def generate_image_pro_for_post(post_id: int, request: GenerateImageRequest, db:
         # Añadiremos al prompt los colores de la marca para forzar composición visual
         brand = db.query(Brand).filter(Brand.id == post.brand_id).first()
         enhanced_prompt = request.media_prompt
+        
+        if request.reference_image_b64:
+            try:
+                b64_img = request.reference_image_b64
+                if "," in b64_img:
+                    header, b64data = b64_img.split(",", 1)
+                    mime_type = header.split(";")[0].split(":")[1]
+                else:
+                    mime_type = "image/jpeg"
+                    b64data = b64_img
+                
+                image_bytes = base64.b64decode(b64data)
+                describe_res = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        "Analyze this character reference image. Describe in 60 words maximum the EXACT physical appearance, clothing, colors, face, body shape, and aesthetic style. Ignore background."
+                    ]
+                )
+                if describe_res and describe_res.text:
+                    enhanced_prompt = f"CRITICAL SUBJECT TO DRAW EXACTLY LIKE THIS: {describe_res.text}. SCENE ACTION: {enhanced_prompt}"
+            except Exception as ex:
+                logging.warning(f"Error interceptando imagen de referencia PRO: {ex}")
+
         if brand and brand.visual_identity and "colors" in brand.visual_identity:
             colors_str = ", ".join(brand.visual_identity["colors"])
             enhanced_prompt += f". IMPORTANT: High fidelity, photorealistic, premium quality. Stylize with primary brand colors: {colors_str}."
@@ -317,6 +368,30 @@ def generate_video_for_post(post_id: int, request: GenerateImageRequest, db: Ses
     try:
         brand = db.query(Brand).filter(Brand.id == post.brand_id).first()
         enhanced_prompt = request.media_prompt
+        
+        if request.reference_image_b64:
+            try:
+                b64_img = request.reference_image_b64
+                if "," in b64_img:
+                    header, b64data = b64_img.split(",", 1)
+                    mime_type = header.split(";")[0].split(":")[1]
+                else:
+                    mime_type = "image/jpeg"
+                    b64data = b64_img
+                
+                image_bytes = base64.b64decode(b64data)
+                describe_res = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=[
+                        types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
+                        "Analyze this character reference image. Describe in 60 words maximum the EXACT physical appearance, clothing, colors, face, body shape, and aesthetic style. Ignore background."
+                    ]
+                )
+                if describe_res and describe_res.text:
+                    enhanced_prompt = f"CRITICAL SUBJECT TO DRAW EXACTLY LIKE THIS: {describe_res.text}. SCENE ACTION: {enhanced_prompt}"
+            except Exception as ex:
+                logging.warning(f"Error interceptando imagen de referencia VEO: {ex}")
+
         if brand and brand.visual_identity and "colors" in brand.visual_identity:
             colors_str = ", ".join(brand.visual_identity["colors"])
             enhanced_prompt += f". Cinematic aesthetic. Integrate brand colors organically: {colors_str}."

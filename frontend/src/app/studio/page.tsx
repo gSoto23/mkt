@@ -34,6 +34,7 @@ function StudioBoardContent() {
     const [generatingProImage, setGeneratingProImage] = useState(false);
     const [generatingVideo, setGeneratingVideo] = useState(false);
     const [statusFilter, setStatusFilter] = useState('PENDING_APPROVAL');
+    const [editReferenceImage, setEditReferenceImage] = useState<string | null>(null);
 
     const loadData = async () => {
         setLoading(true);
@@ -139,6 +140,7 @@ function StudioBoardContent() {
         // Convert to local YYYY-MM-DDThh:mm
         const dStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0,16);
         setEditDate(dStr);
+        setEditReferenceImage(null);
     };
 
     const generateImage = async () => {
@@ -148,7 +150,7 @@ function StudioBoardContent() {
             const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ media_prompt: editPrompt })
+                body: JSON.stringify({ media_prompt: editPrompt, reference_image_b64: editReferenceImage })
             });
             const data = await res.json();
             if(data.image_url) {
@@ -175,7 +177,7 @@ function StudioBoardContent() {
             const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-image-pro`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ media_prompt: editPrompt })
+                body: JSON.stringify({ media_prompt: editPrompt, reference_image_b64: editReferenceImage })
             });
             const data = await res.json();
             if(data.image_url) {
@@ -202,7 +204,7 @@ function StudioBoardContent() {
             const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/generate-video`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ media_prompt: editPrompt })
+                body: JSON.stringify({ media_prompt: editPrompt, reference_image_b64: editReferenceImage })
             });
             const data = await res.json();
             if(data.video_url) {
@@ -551,8 +553,34 @@ function StudioBoardContent() {
                                   }}
                                   onFocus={e => e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)'}
                                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
-                              />
+                               />
                            </div>
+
+                           {brandInfo?.reference_images && brandInfo.reference_images.length > 0 && (
+                               <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>
+                                   <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem', color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
+                                       <span>🧝‍♀️ Personaje / Referencia Base</span>
+                                       {editReferenceImage && <button onClick={() => setEditReferenceImage(null)} style={{background:'transparent', border:'none', color:'#ef4444', fontSize:'0.7rem', cursor:'pointer'}}>Quitar</button>}
+                                   </label>
+                                   <div className="premium-scrollbar" style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
+                                       {brandInfo.reference_images.map((imgUrl: string, idx: number) => (
+                                           <div 
+                                               key={idx} 
+                                               onClick={() => setEditReferenceImage(imgUrl === editReferenceImage ? null : imgUrl)}
+                                               style={{ 
+                                                   minWidth: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer',
+                                                   border: imgUrl === editReferenceImage ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
+                                                   opacity: editReferenceImage && imgUrl !== editReferenceImage ? 0.3 : 1, transition: 'all 0.2s',
+                                                   boxShadow: imgUrl === editReferenceImage ? '0 0 15px rgba(16,185,129,0.4)' : 'none'
+                                               }}
+                                               title="Usar esta imagen como referencia para mantener la consistencia"
+                                           >
+                                               <img src={imgUrl} alt={`Ref ${idx}`} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                                           </div>
+                                       ))}
+                                   </div>
+                               </div>
+                           )}
 
                            {/* Panel Generador Visual */}
                            <div style={{ display: 'flex', flexDirection: 'column' }}>
