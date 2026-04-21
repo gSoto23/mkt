@@ -555,30 +555,53 @@ function StudioBoardContent() {
                                   onBlur={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'}
                                />
                            </div>
-
                            {brandInfo?.reference_images && brandInfo.reference_images.length > 0 && (
-                               <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '1.5rem' }}>
-                                   <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.8rem', color: '#cbd5e1', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
-                                       <span>🧝‍♀️ Personaje / Referencia Base</span>
-                                       {editReferenceImage && <button onClick={() => setEditReferenceImage(null)} style={{background:'transparent', border:'none', color:'#ef4444', fontSize:'0.7rem', cursor:'pointer'}}>Quitar</button>}
+                               <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                   <label style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', color: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.5px' }}>
+                                       <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                            <span style={{ padding: '4px 8px', background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800 }}>NUEVO</span>
+                                            🎯 Anclar Personaje (Mantiene Consistencia)
+                                       </span>
+                                       {editReferenceImage && <button onClick={() => setEditReferenceImage(null)} style={{background:'rgba(239, 68, 68, 0.1)', border:'1px solid rgba(239, 68, 68, 0.3)', color:'#fca5a5', fontSize:'0.7rem', padding: '4px 10px', borderRadius: '20px', cursor:'pointer', fontWeight: 600, transition: 'all 0.2s'}} onMouseOver={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseOut={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'}>Desactivar</button>}
                                    </label>
-                                   <div className="premium-scrollbar" style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '5px' }}>
-                                       {brandInfo.reference_images.map((imgUrl: string, idx: number) => (
-                                           <div 
-                                               key={idx} 
-                                               onClick={() => setEditReferenceImage(imgUrl === editReferenceImage ? null : imgUrl)}
-                                               style={{ 
-                                                   minWidth: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer',
-                                                   border: imgUrl === editReferenceImage ? '2px solid #10b981' : '1px solid rgba(255,255,255,0.1)',
-                                                   opacity: editReferenceImage && imgUrl !== editReferenceImage ? 0.3 : 1, transition: 'all 0.2s',
-                                                   boxShadow: imgUrl === editReferenceImage ? '0 0 15px rgba(16,185,129,0.4)' : 'none'
-                                               }}
-                                               title="Usar esta imagen como referencia para mantener la consistencia"
-                                           >
-                                               <img src={imgUrl} alt={`Ref ${idx}`} style={{width:'100%', height:'100%', objectFit:'cover'}} />
-                                           </div>
-                                       ))}
+                                   <div className="premium-scrollbar" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                       {brandInfo.reference_images.map((imgUrl: string, idx: number) => {
+                                           const isSelected = imgUrl === editReferenceImage;
+                                           return (
+                                               <div 
+                                                   key={idx} 
+                                                   onClick={() => setEditReferenceImage(isSelected ? null : imgUrl)}
+                                                   style={{ 
+                                                       position: 'relative',
+                                                       minWidth: '65px', width: '65px', height: '65px', borderRadius: '50%', cursor: 'pointer',
+                                                       border: isSelected ? '3px solid #10b981' : '2px solid rgba(255,255,255,0.2)',
+                                                       opacity: editReferenceImage && !isSelected ? 0.4 : 1, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                       boxShadow: isSelected ? '0 0 20px rgba(16,185,129,0.5)' : 'none',
+                                                       transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                                                       padding: '2px', background: isSelected ? 'linear-gradient(45deg, #10b981, #3b82f6)' : 'transparent'
+                                                   }}
+                                                   title="Usar esta imagen como referencia para mantener la consistencia"
+                                               >
+                                                   <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#000' }}>
+                                                        <img src={imgUrl} alt={`Ref ${idx}`} style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                                                   </div>
+                                                   {isSelected && (
+                                                       <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#10b981', color: 'white', border: '2px solid #18181b', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>✓</div>
+                                                   )}
+                                               </div>
+                                           )
+                                       })}
                                    </div>
+                                   {editReferenceImage ? (
+                                       <p style={{ margin: '10px 0 0 0', fontSize: '0.75rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                           <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }}></span>
+                                           Gemini clonará a este personaje durante la renderización.
+                                       </p>
+                                   ) : (
+                                       <p style={{ margin: '10px 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                                           Selecciona una referencia para evitar que el personaje varíe.
+                                       </p>
+                                   )}
                                </div>
                            )}
 
