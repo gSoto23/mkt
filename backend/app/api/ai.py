@@ -215,6 +215,22 @@ def delete_post(post_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"message": "Post eliminado"}
 
+class UploadImageRequest(BaseModel):
+    image_b64: str
+
+@router.post("/posts/{post_id}/upload-image")
+def upload_image_for_post(post_id: int, request: UploadImageRequest, db: Session = Depends(get_db)):
+    """ Permite subir una imagen final de forma manual para un post """
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+        
+    post.image_url = request.image_b64
+    post.video_url = None
+    db.commit()
+    
+    return {"message": "Imagen subida exitosamente", "image_url": post.image_url}
+
 class GenerateImageRequest(BaseModel):
     media_prompt: str
     reference_image_b64: str = None
@@ -248,11 +264,11 @@ def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the image is drawn (e.g., flat 2D vector, line thickness, shading style, children's book illustration). This will be used as a strict style anchor."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic to all characters). SCENE TO DRAW: {request.media_prompt}"
+                    enhanced_prompt = f"MANDATORY CHARACTER AND STYLE ANCHOR: {describe_res.text.strip()}. (Recreate this exact character and aesthetic). SCENE TO DRAW: {request.media_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia: {ex}")
 
@@ -315,11 +331,11 @@ def generate_image_pro_for_post(post_id: int, request: GenerateImageRequest, db:
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the image is drawn (e.g., flat 2D vector, line thickness, shading style, children's book illustration). This will be used as a strict style anchor."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic to all characters). SCENE TO DRAW: {enhanced_prompt}"
+                    enhanced_prompt = f"MANDATORY CHARACTER AND STYLE ANCHOR: {describe_res.text.strip()}. (Recreate this exact character and aesthetic). SCENE TO DRAW: {enhanced_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia PRO: {ex}")
 
@@ -384,11 +400,11 @@ def generate_video_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the video/image is drawn or rendered. This will be used as a strict style anchor."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic). SCENE TO DRAW: {enhanced_prompt}"
+                    enhanced_prompt = f"MANDATORY CHARACTER AND STYLE ANCHOR: {describe_res.text.strip()}. (Recreate this exact character and aesthetic). SCENE TO DRAW: {enhanced_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia VEO: {ex}")
 

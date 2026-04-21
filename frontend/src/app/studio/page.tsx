@@ -143,6 +143,29 @@ function StudioBoardContent() {
         setEditReferenceImage(null);
     };
 
+    const uploadLocalImage = async (b64: string) => {
+        if (!editingPost) return;
+        setGeneratingImage(true);
+        try {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/upload-image`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image_b64: b64 })
+            });
+            const data = await res.json();
+            if(data.image_url) {
+                setEditingPost({...editingPost, image_url: data.image_url, video_url: null});
+                setPosts(posts.map(p => p.id === editingPost.id ? {...p, image_url: data.image_url, video_url: null} : p));
+            } else {
+                alert("Error: " + data.detail);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al subir imagen");
+        }
+        setGeneratingImage(false);
+    };
+
     const generateImage = async () => {
         if (!editingPost) return;
         setGeneratingImage(true);
@@ -562,9 +585,47 @@ function StudioBoardContent() {
                                             <span style={{ padding: '4px 8px', background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 800 }}>NUEVO</span>
                                             🎯 Anclar Personaje (Mantiene Consistencia)
                                        </span>
-                                       {editReferenceImage && <button onClick={() => setEditReferenceImage(null)} style={{background:'rgba(239, 68, 68, 0.1)', border:'1px solid rgba(239, 68, 68, 0.3)', color:'#fca5a5', fontSize:'0.7rem', padding: '4px 10px', borderRadius: '20px', cursor:'pointer', fontWeight: 600, transition: 'all 0.2s'}} onMouseOver={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseOut={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'}>Desactivar</button>}
+                                       <div style={{ display: 'flex', gap: '8px' }}>
+                                           <button onClick={() => {
+                                               const fileInput = document.createElement('input');
+                                               fileInput.type = 'file';
+                                               fileInput.accept = 'image/*';
+                                               fileInput.onchange = (e) => {
+                                                   const file = (e.target as HTMLInputElement).files?.[0];
+                                                   if (file) {
+                                                       const reader = new FileReader();
+                                                       reader.onload = (e2) => {
+                                                           const b64 = e2.target?.result as string;
+                                                           setEditReferenceImage(b64);
+                                                       };
+                                                       reader.readAsDataURL(file);
+                                                   }
+                                               };
+                                               fileInput.click();
+                                           }} style={{background:'rgba(59, 130, 246, 0.1)', border:'1px solid rgba(59, 130, 246, 0.3)', color:'#93c5fd', fontSize:'0.7rem', padding: '4px 10px', borderRadius: '20px', cursor:'pointer', fontWeight: 600, transition: 'all 0.2s'}} onMouseOver={e => e.currentTarget.style.background='rgba(59, 130, 246, 0.2)'} onMouseOut={e => e.currentTarget.style.background='rgba(59, 130, 246, 0.1)'}>+ Subir Propia</button>
+                                           {editReferenceImage && <button onClick={() => setEditReferenceImage(null)} style={{background:'rgba(239, 68, 68, 0.1)', border:'1px solid rgba(239, 68, 68, 0.3)', color:'#fca5a5', fontSize:'0.7rem', padding: '4px 10px', borderRadius: '20px', cursor:'pointer', fontWeight: 600, transition: 'all 0.2s'}} onMouseOver={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.2)'} onMouseOut={e => e.currentTarget.style.background='rgba(239, 68, 68, 0.1)'}>Desactivar</button>}
+                                       </div>
                                    </label>
                                    <div className="premium-scrollbar" style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                                       {editReferenceImage && editReferenceImage.startsWith('data:image') && (
+                                           <div 
+                                               style={{ 
+                                                   position: 'relative',
+                                                   minWidth: '65px', width: '65px', height: '65px', borderRadius: '50%', cursor: 'pointer',
+                                                   border: '3px solid #10b981',
+                                                   opacity: 1, transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                                                   boxShadow: '0 0 20px rgba(16,185,129,0.5)',
+                                                   transform: 'scale(1.05)',
+                                                   padding: '2px', background: 'linear-gradient(45deg, #10b981, #3b82f6)'
+                                               }}
+                                               title="Referencia Personalizada Subida"
+                                           >
+                                               <div style={{ width: '100%', height: '100%', borderRadius: '50%', overflow: 'hidden', background: '#000' }}>
+                                                    <img src={editReferenceImage} alt="Ref Custom" style={{width:'100%', height:'100%', objectFit:'cover'}} />
+                                               </div>
+                                               <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: '#10b981', color: 'white', border: '2px solid #18181b', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 'bold' }}>✓</div>
+                                           </div>
+                                       )}
                                        {brandInfo.reference_images.map((imgUrl: string, idx: number) => {
                                            const isSelected = imgUrl === editReferenceImage;
                                            return (
@@ -656,6 +717,25 @@ function StudioBoardContent() {
                                   <div style={{position: 'relative', flex: 1, display: 'flex', flexDirection: 'column'}}>
                                       <img src={editingPost.image_url} alt="Generado" style={{ width: '100%', height: '100%', minHeight: '220px', objectFit: 'cover', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 10px 25px rgba(0,0,0,0.3)' }} />
                                       <div style={{ position: 'absolute', bottom: 12, right: 12, display: 'flex', gap: '8px' }}>
+                                          <button onClick={() => {
+                                              const fileInput = document.createElement('input');
+                                              fileInput.type = 'file';
+                                              fileInput.accept = 'image/*';
+                                              fileInput.onchange = (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                      const reader = new FileReader();
+                                                      reader.onload = (e2) => {
+                                                          const b64 = e2.target?.result as string;
+                                                          uploadLocalImage(b64);
+                                                      };
+                                                      reader.readAsDataURL(file);
+                                                  }
+                                              };
+                                              fileInput.click();
+                                          }} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}>
+                                               ⬆️ Subir Arte Manual
+                                          </button>
                                           <button onClick={generateImage} disabled={generatingImage || generatingProImage || generatingVideo} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}>
                                                {generatingImage ? <><div style={{width: '12px', height: '12px', border: '2px solid', borderColor: 'transparent #fff #fff #fff', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> ...</> : '🔄 Re-generar (Nano 2)'}
                                           </button>
@@ -669,19 +749,38 @@ function StudioBoardContent() {
                                   </div>
                               ) : (
                                   <div style={{ display: 'flex', gap: '15px' }}>
+                                      <button onClick={() => {
+                                          const fileInput = document.createElement('input');
+                                          fileInput.type = 'file';
+                                          fileInput.accept = 'image/*';
+                                          fileInput.onchange = (e) => {
+                                              const file = (e.target as HTMLInputElement).files?.[0];
+                                              if (file) {
+                                                  const reader = new FileReader();
+                                                  reader.onload = (e2) => {
+                                                      const b64 = e2.target?.result as string;
+                                                      uploadLocalImage(b64);
+                                                  };
+                                                  reader.readAsDataURL(file);
+                                              }
+                                          };
+                                          fileInput.click();
+                                      }} style={{ flex: 1, minHeight: '220px', background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.01) 100%)', color: '#cbd5e1', border: '1px dashed rgba(16, 185, 129, 0.2)', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px', transition: 'all 0.3s' }} onMouseOver={e => {e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.6)'}} onMouseOut={e => {e.currentTarget.style.background = 'linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(16, 185, 129, 0.01) 100%)'; e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.2)'}}>
+                                          <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#10b981', boxShadow: '0 4px 15px rgba(16,185,129,0.3)'}}>📁</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '4px'}}>Subir Arte</span><span style={{fontSize: '0.8rem', color: '#a7f3d0'}}>Imagen Manual</span></div></>
+                                      </button>
                                       <button onClick={generateImage} disabled={generatingImage || generatingProImage || generatingVideo} style={{ flex: 1, minHeight: '220px', background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)', color: '#cbd5e1', border: '1px dashed rgba(255,255,255,0.15)', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px', transition: 'all 0.3s' }} onMouseOver={e => {e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)'}} onMouseOut={e => {e.currentTarget.style.background = 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)'}}>
                                           {generatingImage ? (
-                                              <><div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent #6366f1 #6366f1 #6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> <span style={{fontSize: '0.9rem', color: '#94a3b8'}}>Renderizando con Nano Banana 2...</span></>
+                                              <><div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent #6366f1 #6366f1 #6366f1', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> <span style={{fontSize: '0.9rem', color: '#94a3b8'}}>Renderizando...</span></>
                                           ) : (
-                                              <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#818cf8', boxShadow: '0 4px 15px rgba(99,102,241,0.2)'}}>📸</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '4px'}}>Arte Estático</span><span style={{fontSize: '0.8rem', color: '#64748b'}}>Fotografía (Nano Banana 2)</span></div></>
+                                              <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#818cf8', boxShadow: '0 4px 15px rgba(99,102,241,0.2)'}}>📸</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#f8fafc', marginBottom: '4px'}}>Arte Estático</span><span style={{fontSize: '0.8rem', color: '#64748b'}}>(Nano 2)</span></div></>
                                           )}
                                       </button>
                                       
                                       <button onClick={generateVideo} disabled={generatingImage || generatingProImage || generatingVideo} style={{ flex: 1, minHeight: '220px', background: 'linear-gradient(180deg, rgba(236, 72, 153, 0.05) 0%, rgba(236, 72, 153, 0.01) 100%)', color: '#cbd5e1', border: '1px dashed rgba(236, 72, 153, 0.2)', borderRadius: '12px', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '15px', transition: 'all 0.3s' }} onMouseOver={e => {e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)'; e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.6)'}} onMouseOut={e => {e.currentTarget.style.background = 'linear-gradient(180deg, rgba(236, 72, 153, 0.05) 0%, rgba(236, 72, 153, 0.01) 100%)'; e.currentTarget.style.borderColor = 'rgba(236, 72, 153, 0.2)'}}>
                                           {generatingVideo ? (
-                                              <><div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent #ec4899 #ec4899 #ec4899', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> <span style={{fontSize: '0.9rem', color: '#fbcfe8'}}>Filmando con Veo 2.0...</span></>
+                                              <><div style={{width: '40px', height: '40px', border: '3px solid', borderColor: 'transparent #ec4899 #ec4899 #ec4899', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> <span style={{fontSize: '0.9rem', color: '#fbcfe8'}}>Filmando...</span></>
                                           ) : (
-                                              <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#f472b6', boxShadow: '0 4px 15px rgba(236,72,153,0.3)'}}>🎬</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '4px'}}>Producir Reel</span><span style={{fontSize: '0.8rem', color: '#fbcfe8'}}>Cinematografía (Veo 2.0)</span></div></>
+                                              <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#f472b6', boxShadow: '0 4px 15px rgba(236,72,153,0.3)'}}>🎬</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '4px'}}>Producir Reel</span><span style={{fontSize: '0.8rem', color: '#fbcfe8'}}>(Veo 2.0)</span></div></>
                                           )}
                                       </button>
                                   </div>
