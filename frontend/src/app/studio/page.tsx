@@ -166,6 +166,29 @@ function StudioBoardContent() {
         setGeneratingImage(false);
     };
 
+    const uploadLocalVideo = async (b64: string) => {
+        if (!editingPost) return;
+        setGeneratingVideo(true);
+        try {
+            const res = await apiFetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/ai/posts/${editingPost.id}/upload-video`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ video_b64: b64 })
+            });
+            const data = await res.json();
+            if(data.video_url) {
+                setEditingPost({...editingPost, video_url: data.video_url, image_url: null});
+                setPosts(posts.map(p => p.id === editingPost.id ? {...p, video_url: data.video_url, image_url: null} : p));
+            } else {
+                alert("Error: " + data.detail);
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error al subir video");
+        }
+        setGeneratingVideo(false);
+    };
+
     const generateImage = async () => {
         if (!editingPost) return;
         setGeneratingImage(true);
@@ -708,6 +731,25 @@ function StudioBoardContent() {
                                           <button onClick={generateVideo} disabled={generatingImage || generatingProImage || generatingVideo} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}>
                                                {generatingVideo ? <><div style={{width: '12px', height: '12px', border: '2px solid', borderColor: 'transparent #fff #fff #fff', borderRadius: '50%', animation: 'spin 1s linear infinite'}} /> Filmando...</> : '🎬 Re-grabar Reel'}
                                           </button>
+                                          <button onClick={() => {
+                                              const fileInput = document.createElement('input');
+                                              fileInput.type = 'file';
+                                              fileInput.accept = 'video/*';
+                                              fileInput.onchange = (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                      const reader = new FileReader();
+                                                      reader.onload = (e2) => {
+                                                          const b64 = e2.target?.result as string;
+                                                          uploadLocalVideo(b64);
+                                                      };
+                                                      reader.readAsDataURL(file);
+                                                  }
+                                              };
+                                              fileInput.click();
+                                          }} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.4)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}>
+                                               ⬆️ Subir Video Manual
+                                          </button>
                                           <button onClick={generateImage} disabled={generatingImage || generatingProImage || generatingVideo} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                 Volver a Foto
                                           </button>
@@ -744,6 +786,25 @@ function StudioBoardContent() {
                                           </button>
                                           <button onClick={generateVideo} disabled={generatingImage || generatingProImage || generatingVideo} style={{ background: 'linear-gradient(135deg, #ec4899 0%, #be185d 100%)', boxShadow: '0 4px 15px rgba(236, 72, 153, 0.4)', color: '#fff', padding: '8px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
                                                {generatingVideo ? 'Filtrando...' : '🎬 Hacer Reel'}
+                                          </button>
+                                          <button onClick={() => {
+                                              const fileInput = document.createElement('input');
+                                              fileInput.type = 'file';
+                                              fileInput.accept = 'video/*';
+                                              fileInput.onchange = (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                      const reader = new FileReader();
+                                                      reader.onload = (e2) => {
+                                                          const b64 = e2.target?.result as string;
+                                                          uploadLocalVideo(b64);
+                                                      };
+                                                      reader.readAsDataURL(file);
+                                                  }
+                                              };
+                                              fileInput.click();
+                                          }} style={{ background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(4px)', color: 'white', padding: '8px 12px', borderRadius: '8px', border: '1px dashed rgba(236, 72, 153, 0.4)', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(15, 23, 42, 0.8)'}>
+                                               ⬆️ Subir Video Manual
                                           </button>
                                       </div>
                                   </div>
@@ -782,6 +843,25 @@ function StudioBoardContent() {
                                           ) : (
                                               <><div style={{width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(236, 72, 153, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.8rem', color: '#f472b6', boxShadow: '0 4px 15px rgba(236,72,153,0.3)'}}>🎬</div> <div style={{textAlign: 'center'}}><span style={{display: 'block', fontSize: '1rem', fontWeight: 600, color: '#fff', marginBottom: '4px'}}>Producir Reel</span><span style={{fontSize: '0.8rem', color: '#fbcfe8'}}>(Veo 2.0)</span></div></>
                                           )}
+                                          <button onClick={() => {
+                                              const fileInput = document.createElement('input');
+                                              fileInput.type = 'file';
+                                              fileInput.accept = 'video/*';
+                                              fileInput.onchange = (e) => {
+                                                  const file = (e.target as HTMLInputElement).files?.[0];
+                                                  if (file) {
+                                                      const reader = new FileReader();
+                                                      reader.onload = (e2) => {
+                                                          const b64 = e2.target?.result as string;
+                                                          uploadLocalVideo(b64);
+                                                      };
+                                                      reader.readAsDataURL(file);
+                                                  }
+                                              };
+                                              fileInput.click();
+                                          }} style={{ marginTop: '10px', background: 'rgba(236, 72, 153, 0.1)', border: '1px solid rgba(236, 72, 153, 0.3)', color: '#fbcfe8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600, transition: 'all 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.2)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(236, 72, 153, 0.1)'}>
+                                               ⬆️ Subir Video Manual
+                                          </button>
                                       </button>
                                   </div>
                               )}

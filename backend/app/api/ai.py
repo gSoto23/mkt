@@ -231,6 +231,22 @@ def upload_image_for_post(post_id: int, request: UploadImageRequest, db: Session
     
     return {"message": "Imagen subida exitosamente", "image_url": post.image_url}
 
+class UploadVideoRequest(BaseModel):
+    video_b64: str
+
+@router.post("/posts/{post_id}/upload-video")
+def upload_video_for_post(post_id: int, request: UploadVideoRequest, db: Session = Depends(get_db)):
+    """ Permite subir un video final de forma manual para un post """
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post no encontrado")
+        
+    post.video_url = request.video_b64
+    post.image_url = None  # Limpiamos la imagen si mandan un video maestro
+    db.commit()
+    
+    return {"message": "Video subido exitosamente", "video_url": post.video_url}
+
 class GenerateImageRequest(BaseModel):
     media_prompt: str
     reference_image_b64: str = None
