@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import json
 import logging
 import base64
+from typing import Optional
 from app.core.config import settings
 from app.db.database import get_db
 from app.models.base import Brand, Post
@@ -171,10 +172,10 @@ class PostUpdateRequest(BaseModel):
     copy: str
     media_prompt: str
     status: str
-    platform: str = None
-    media_type: str = None
-    media_urls: list = None
-    scheduled_for: str = None
+    platform: Optional[str] = None
+    media_type: Optional[str] = None
+    media_urls: Optional[list] = None
+    scheduled_for: Optional[str] = None
 
 @router.put("/posts/{post_id}")
 def update_post(post_id: int, request: PostUpdateRequest, db: Session = Depends(get_db)):
@@ -249,7 +250,7 @@ def upload_video_for_post(post_id: int, request: UploadVideoRequest, db: Session
 
 class GenerateImageRequest(BaseModel):
     media_prompt: str
-    reference_image_b64: str = None
+    reference_image_b64: Optional[str] = None
 
 @router.post("/posts/{post_id}/generate-image")
 def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Session = Depends(get_db)):
