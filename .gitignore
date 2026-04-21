@@ -10,6 +10,11 @@ venv_*/
 pip-log.txt
 pip-delete-this-directory.txt
 
+# Databases and celery
+*.sqlite3
+*.db
+celerybeat-schedule*
+
 # Environment variables
 .env
 .env.local

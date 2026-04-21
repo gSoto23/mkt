@@ -19,7 +19,16 @@ class BrandUpdateADN(BaseModel):
 
 @router.get("/")
 def list_brands(db: Session = Depends(get_db)):
-    return db.query(Brand).all()
+    # Al listar las marcas evitamos devolver el array `reference_images` 
+    # ya que contiene strings Base64 inmensos que congelan y ralentizan la página principal.
+    brands = db.query(Brand).all()
+    results = []
+    for b in brands:
+        brand_dict = {c.name: getattr(b, c.name) for c in b.__table__.columns}
+        if "reference_images" in brand_dict:
+            del brand_dict["reference_images"]
+        results.append(brand_dict)
+    return results
 
 class BrandCreate(BaseModel):
     name: str = ""

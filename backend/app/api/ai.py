@@ -49,15 +49,37 @@ def generate_batch(request: GenerateBatchRequest, db: Session = Depends(get_db))
         f"Sus guías visuales (colores corporativos, estilo): {visual_guidelines}. "
         f"DIRECTRIZ ESTRATÉGICA MAESTRA: {custom_master_prompt}. "
         f"{news_context}. "
-        f"IMPORTANTE: Debes generar exactamente un total de {total_posts} publicaciones distribuidos de esta manera: {platforms_str}. NO generes contenido para ninguna otra plataforma ni alteres las cantidades. "
+        f"IMPORTANTE Y CRÍTICO: Se han adjuntado imágenes de referencia de los personajes/estilos de esta marca junto a este prompt. Tu tarea ineludible es analizar a fondo estas imágenes y transcribir TODO el detalle visual (estilo artístico, color de cabello, ropa, contextura, rasgo particular o vibra general) literalmente dentro del campo 'image_prompt' de cada publicación que generes. Esto es para forzar al motor ilustrador a dibujar a estas figuras con total consistencia. "
+        f"Debes generar exactamente un total de {total_posts} publicaciones distribuidos de esta manera: {platforms_str}. NO generes contenido para ninguna otra plataforma ni alteres las cantidades. "
         "SOLO devuelve un arreglo JSON estricto con la siguiente estructura y ni una sola palabra más (retorna codígo json válido): "
-        '[{ "day_offset": 1, "platform": "Facebook", "copy": "...", "image_prompt": "Instrucción MUY DETALLADA en inglés para DALL-E/Imagen3. DEBE indicar: 1) Forma para [Plataforma], 2) Aspect ratio técnico, 3) Elementos visuales y colores." }]'
+        '[{ "day_offset": 1, "platform": "Facebook", "copy": "...", "image_prompt": "Instrucción MUY DETALLADA en inglés para la generación. DEBE indicar los elementos exactos del personaje/estilo adjunto en los requerimientos." }]'
     )
+
+    contents_list = [system_prompt]
+    
+    # Inyectar imágenes de referencia subidas al inicio para consistencia
+    if hasattr(brand, 'reference_images') and brand.reference_images:
+        for b64_img in brand.reference_images:
+            try:
+                # El formato suele ser "data:image/jpeg;base64,...datos..."
+                if "," in b64_img:
+                    header, b64data = b64_img.split(",", 1)
+                    mime_type = header.split(";")[0].split(":")[1]
+                else:
+                    mime_type = "image/jpeg"
+                    b64data = b64_img
+                
+                image_bytes = base64.b64decode(b64data)
+                contents_list.append(
+                    types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+                )
+            except Exception as e:
+                logging.warning(f"No se pudo cargar una imagen de referencia multimodal: {e}")
 
     try:
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=system_prompt,
+            contents=contents_list,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
             )
