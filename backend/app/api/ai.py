@@ -122,8 +122,8 @@ def get_pending_posts(brand_id: int, db: Session = Depends(get_db)):
             "brand_id": p.brand_id,
             "platform": p.platform,
             "copy": p.copy,
-            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
-            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
+            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg?v={len(p.image_url)}" if p.image_url else None,
+            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4?v={len(p.video_url)}" if p.video_url else None,
             "media_type": p.media_type,
             "media_urls": p.media_urls,
             "media_prompt": p.media_prompt,
@@ -155,8 +155,8 @@ def get_global_posts(brand_id: int = None, db: Session = Depends(get_db)):
             "brand_colors": brand_colors,
             "platform": p.platform,
             "copy": p.copy,
-            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg" if p.image_url else None,
-            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4" if p.video_url else None,
+            "image_url": f"{b_url}/api/social/media/{p.id}_t.jpg?v={len(p.image_url)}" if p.image_url else None,
+            "video_url": f"{b_url}/api/social/media/{p.id}_t.mp4?v={len(p.video_url)}" if p.video_url else None,
             "media_type": p.media_type,
             "media_urls": p.media_urls,
             "media_prompt": p.media_prompt,
@@ -264,7 +264,7 @@ def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing, accessories, and relative positions of every single character or subject. Also extract the overarching art style, line thickness, and rendering technique. Provide a highly detailed, extremely literal visual description in under 150 words that another AI will use as a STRICT BLUEPRINT to recreate the exact characters, their outfits, and style perfectly without any deviations."
                     ]
                 )
                 if describe_res and describe_res.text:
@@ -331,7 +331,7 @@ def generate_image_pro_for_post(post_id: int, request: GenerateImageRequest, db:
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing, accessories, and relative positions of every single character or subject. Also extract the overarching art style, line thickness, and rendering technique. Provide a highly detailed, extremely literal visual description in under 150 words that another AI will use as a STRICT BLUEPRINT to recreate the exact characters, their outfits, and style perfectly without any deviations."
                     ]
                 )
                 if describe_res and describe_res.text:
@@ -400,7 +400,7 @@ def generate_video_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing (if any), and physical characteristics of the main character(s) or subject(s), as well as the overarching art style and rendering technique. Provide a highly detailed, extremely literal visual description in under 100 words that another AI can use to recreate the exact character and style without hallucinations."
+                        "You are an expert art director and character designer. Analyze this reference image meticulously. Extract the exact physical appearance, species, colors, clothing, accessories, and relative positions of every single character or subject. Also extract the overarching art style, line thickness, and rendering technique. Provide a highly detailed, extremely literal visual description in under 150 words that another AI will use as a STRICT BLUEPRINT to recreate the exact characters, their outfits, and style perfectly without any deviations."
                     ]
                 )
                 if describe_res and describe_res.text:
