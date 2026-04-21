@@ -103,8 +103,25 @@ async def meta_callback(code: str, state: str, db: Session = Depends(get_db)):
         pages_data = pages_res.json()
         pages = pages_data.get("data", [])
         
+        # Conseguir la Marca para empatar inteligentemente
+        from app.models.base import Brand
+        brand = db.query(Brand).filter(Brand.id == brand_id).first()
+        brand_name_lower = brand.name.lower().strip() if brand else ""
+
+        # Filtrado Heurístico: Elegir solo la página que haga match con la marca
+        matched_pages = [p for p in pages if p["name"].lower().strip() == brand_name_lower]
+        if not matched_pages:
+            # Buscar por contención (Ej: "Mundo Tapia Oficial" contiene "Mundo Tapia")
+            matched_pages = [p for p in pages if brand_name_lower in p["name"].lower() or p["name"].lower() in brand_name_lower]
+        if not matched_pages and len(pages) > 0:
+            # Matching por palabras clave (Interseccion)
+            best_match = max(pages, key=lambda p: len(set(p["name"].lower().split()) & set(brand_name_lower.split())))
+            matched_pages = [best_match]
+            
+        target_pages = matched_pages if matched_pages else pages
+
         cuentas_añadidas = 0
-        for page in pages:
+        for page in target_pages:
             page_id = page["id"]
             page_token = page["access_token"] 
             
