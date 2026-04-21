@@ -248,11 +248,11 @@ def generate_image_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the following in exactly 60 words: 1. The exact art style (e.g., flat 2D vector graphic, digital painting, 3D render). 2. A forensic physical description of the main character (precise eye style, body shape, skin color, textures, clothing). This description will be fed directly to a strict text-to-image AI to PERFECTLY CLONE this character and style. Produce ONLY the final description block."
+                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the image is drawn (e.g., flat 2D vector, line thickness, shading style, children's book illustration). This will be used as a strict style anchor."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY STYLE AND SUBJECT: {describe_res.text.strip()}. ACTION/SCENARIO: {request.media_prompt}"
+                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic to all characters). SCENE TO DRAW: {request.media_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia: {ex}")
 
@@ -315,11 +315,11 @@ def generate_image_pro_for_post(post_id: int, request: GenerateImageRequest, db:
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the following in exactly 60 words: 1. The exact art style (e.g., flat 2D vector graphic, digital painting, 3D render). 2. A forensic physical description of the main character (precise eye style, body shape, skin color, textures, clothing). This description will be fed directly to a strict text-to-image AI to PERFECTLY CLONE this character and style. Produce ONLY the final description block."
+                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the image is drawn (e.g., flat 2D vector, line thickness, shading style, children's book illustration). This will be used as a strict style anchor."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY STYLE AND SUBJECT: {describe_res.text.strip()}. ACTION/SCENARIO: {enhanced_prompt}"
+                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic to all characters). SCENE TO DRAW: {enhanced_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia PRO: {ex}")
 
@@ -384,11 +384,11 @@ def generate_video_for_post(post_id: int, request: GenerateImageRequest, db: Ses
                     model='gemini-2.5-flash',
                     contents=[
                         types.Part.from_bytes(data=image_bytes, mime_type=mime_type),
-                        "You are an expert art director. Analyze this reference image and extract the following in exactly 60 words: 1. The exact art style. 2. A forensic physical description of the main character details. This description will be fed directly to a strict text-to-video AI to PERFECTLY CLONE this character and style. Produce ONLY the final description block."
+                        "You are an expert art director. Analyze this reference image and extract the exact visual art style, rendering technique, and aesthetic vibe in exactly 40 words. DO NOT describe the specific characters, animals, or subjects. Focus ONLY on how the video/image is drawn or rendered. This will be used as a strict style anchor."
                     ]
                 )
                 if describe_res and describe_res.text:
-                    enhanced_prompt = f"MANDATORY STYLE AND SUBJECT: {describe_res.text.strip()}. ACTION/SCENARIO: {enhanced_prompt}"
+                    enhanced_prompt = f"MANDATORY ART STYLE ANCHOR: {describe_res.text.strip()}. (Apply this exact aesthetic). SCENE TO DRAW: {enhanced_prompt}"
             except Exception as ex:
                 logging.warning(f"Error interceptando imagen de referencia VEO: {ex}")
 
