@@ -87,6 +87,8 @@ TIKTOK_CLIENT_KEY="..."
 TIKTOK_CLIENT_SECRET="..."
 BACKEND_URL="https://juguetessinazucar.com"
 FRONTEND_URL="https://juguetessinazucar.com"
+SECRET_KEY="tu_secreto_super_seguro_y_largo_aqui"
+POSTGRES_PASSWORD="mkt_password"
 ```
 *(Guarda con `CTRL+X`, `Y`, `Enter`)*
 
