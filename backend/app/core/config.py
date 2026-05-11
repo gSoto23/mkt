@@ -6,14 +6,14 @@ class Settings(BaseSettings):
     BACKEND_URL: str = "http://localhost:8000"
     
     # Seguridad y JWT
-    SECRET_KEY: str = "super_secreto_hardcodeado_temporal_MKT_AI_8321032"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440 # 24 horas
 
     # DB
     POSTGRES_SERVER: str = "localhost"
     POSTGRES_USER: str = "mkt_user"
-    POSTGRES_PASSWORD: str = "mkt_password"
+    POSTGRES_PASSWORD: str
     POSTGRES_DB: str = "mkt_db"
     POSTGRES_PORT: str = "5432"
     
