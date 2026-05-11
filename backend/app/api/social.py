@@ -30,7 +30,6 @@ def meta_login(brand_id: int):
         "pages_manage_metadata",
         "pages_read_user_content",
         "pages_show_list",
-        "publish_video",
         "read_insights",
         "instagram_basic",
         "instagram_content_publish",
